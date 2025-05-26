@@ -3,6 +3,10 @@
 ## TODOs
 
 - [X] Get nanovg up a running within zig
+- [X] SDL OpenGL support
+  - [ ] Abstract so SDL Backend can be replaced
+- [ ] Add window struct, that manages window
+- [ ] Add application struct, manages whole application
 - [ ] Work how sub libraries work in zig
 - [ ] Add basic audio support
 
