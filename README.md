@@ -1,5 +1,7 @@
 # zcreative - toys for creating stuff in zig with visuals and audio
 
+This repo is a playground for me to learn zig.
+
 ## TODOs
 
 - [X] Get nanovg up a running within zig
