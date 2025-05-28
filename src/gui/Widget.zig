@@ -134,6 +134,7 @@ pub fn drawChildren(self: *Self, vg: nvg) void {
     defer vg.restore();
     const offset = self.relative_rect.getPosition();
     vg.translate(offset.x, offset.y);
+    // std.debug.print("hello {}", .{self.children.items.len});
     for (self.children.items) |child| {
         child.draw(vg);
     }
@@ -263,34 +264,68 @@ pub fn dispatchEvent(self: *Self, e: *event.Event) void {
 }
 
 pub fn handleEvent(self: *Self, e: *event.Event) void {
-    const resize_event: *event.ResizeEvent = @alignCast(@fieldParentPtr("event", e));
-    const mouse_event: *event.MouseEvent = @alignCast(@fieldParentPtr("event", e));
-    const touch_event: *event.TouchEvent = @alignCast(@fieldParentPtr("event", e));
-    const key_event: *event.KeyEvent = @alignCast(@fieldParentPtr("event", e));
-    const text_input_event: *event.TextInputEvent = @alignCast(@fieldParentPtr("event", e));
-    const focus_event: *event.FocusEvent = @alignCast(@fieldParentPtr("event", e));
 
     switch (e.type) {
-        .Resize => self.onResizeFn(self, resize_event),
-        .MouseMove => self.onMouseMoveFn(self, mouse_event),
+        .Resize => {
+            const resize_event: *event.ResizeEvent = @alignCast(@fieldParentPtr("event", e));
+            self.onResizeFn(self, resize_event);
+        },
+        .MouseMove => {
+            const mouse_event: *event.MouseEvent = @alignCast(@fieldParentPtr("event", e));
+            self.onMouseMoveFn(self, mouse_event);
+        },
         .MouseDown => {
+            const mouse_event: *event.MouseEvent = @alignCast(@fieldParentPtr("event", e));
             if (self.acceptsFocus(.mouse)) {
                 self.setFocus(true, .mouse);
             }
             self.onMouseDownFn(self, mouse_event);
         },
-        .MouseUp => self.onMouseUpFn(self, mouse_event),
-        .MouseWheel => self.onMouseWheelFn(self, mouse_event),
-        .TouchPan => self.onTouchPanFn(self, touch_event),
-        .TouchZoom => self.onTouchZoomFn(self, touch_event),
-        .KeyDown => self.onKeyDownFn(self, key_event),
-        .KeyUp => self.onKeyUpFn(self, key_event),
-        .TextInput => self.onTextInputFn(self, text_input_event),
-        .Focus => self.onFocusFn(self, focus_event),
-        .Blur => self.onBlurFn(self, focus_event),
-        .Enter => self.onEnterFn(self),
-        .Leave => self.onLeaveFn(self),
-        .ClipboardUpdate => self.onClipboardUpdateFn(self),
+        .MouseUp => {
+            const mouse_event: *event.MouseEvent = @alignCast(@fieldParentPtr("event", e));
+            self.onMouseUpFn(self, mouse_event);
+        },
+        .MouseWheel => {
+            const mouse_event: *event.MouseEvent = @alignCast(@fieldParentPtr("event", e));
+            self.onMouseWheelFn(self, mouse_event);
+        },
+        .TouchPan => {
+            const touch_event: *event.TouchEvent = @alignCast(@fieldParentPtr("event", e));
+            self.onTouchPanFn(self, touch_event);
+        },
+        .TouchZoom => {
+            const touch_event: *event.TouchEvent = @alignCast(@fieldParentPtr("event", e));
+            self.onTouchZoomFn(self, touch_event);
+        },
+        .KeyDown => {
+            const key_event: *event.KeyEvent = @alignCast(@fieldParentPtr("event", e));
+            self.onKeyDownFn(self, key_event);
+        },
+        .KeyUp => {
+            const key_event: *event.KeyEvent = @alignCast(@fieldParentPtr("event", e));
+            self.onKeyUpFn(self, key_event);
+        },
+        .TextInput => {
+            const text_input_event: *event.TextInputEvent = @alignCast(@fieldParentPtr("event", e));
+            self.onTextInputFn(self, text_input_event);
+        },
+        .Focus => {
+            const focus_event: *event.FocusEvent = @alignCast(@fieldParentPtr("event", e));
+            self.onFocusFn(self, focus_event);
+        },
+        .Blur => {
+            const focus_event: *event.FocusEvent = @alignCast(@fieldParentPtr("event", e));
+            self.onBlurFn(self, focus_event);
+        },
+        .Enter => {
+            self.onEnterFn(self);
+        },
+        .Leave => {
+            self.onLeaveFn(self);
+        },
+        .ClipboardUpdate => {
+            self.onClipboardUpdateFn(self);
+        },
     }
 }
 

@@ -152,12 +152,18 @@ pub fn handleEvent(self: *Self, e: *event.Event) void {
         if (e.type != .Leave) return;
     }
 
-    const mouse_event: *event.MouseEvent = @alignCast(@fieldParentPtr("event", e));
-    const touch_event: *event.TouchEvent = @alignCast(@fieldParentPtr("event", e));
     switch (e.type) {
-        .MouseMove, .MouseDown, .MouseUp, .MouseWheel => self.handleMouseEvent(mouse_event),
-        .TouchPan, .TouchZoom => self.handleTouchEvent(touch_event),
-        .KeyDown, .KeyUp, .TextInput => self.handleKeyEvent(e),
+        .MouseMove, .MouseDown, .MouseUp, .MouseWheel => {
+            const mouse_event: *event.MouseEvent = @alignCast(@fieldParentPtr("event", e));
+            self.handleMouseEvent(mouse_event);
+        },
+        .TouchPan, .TouchZoom => {
+            const touch_event: *event.TouchEvent = @alignCast(@fieldParentPtr("event", e));
+            self.handleTouchEvent(touch_event);
+        },
+        .KeyDown, .KeyUp, .TextInput => {
+            self.handleKeyEvent(e);
+        },
         .Enter => self.setHoveredWidget(self.main_widget),
         .Leave => self.setHoveredWidget(null),
         else => {

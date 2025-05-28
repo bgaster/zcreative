@@ -21,7 +21,9 @@ const sdl = @import("sdl2");
 const nvg = @import("nanovg");
 const gui = @import("gui/gui.zig");
 const Rect = gui.geometry.Rect;
+const data = @import("data");
 const info = @import("info.zig");
+const PanelWidget = @import("PanelWidget.zig");
 
 extern fn SetProcessDPIAware() callconv(.C) c_int;
 // extern fn enableAppleMomentumScroll() callconv(.C) void;
@@ -288,50 +290,50 @@ fn markAllWindowsAsDirty() void {
     }
 }
 
-fn sdlProcessWindowEvent(window_event: c.SDL_WindowEvent) void {
+fn sdlProcessWindowEvent(window_event: sdl.SDL_WindowEvent) void {
     if (findSdlWindow(window_event.windowID)) |sdl_window| {
         sdl_window.dirty = true;
         switch (window_event.event) {
-            c.SDL_WINDOWEVENT_EXPOSED => {
+            sdl.SDL_WINDOWEVENT_EXPOSED => {
                 if (sdl_window.window.isBlockedByModal()) {
                     // TODO: find all modal windows
                     for (sdl_window.window.children.items) |child| {
                         if (child.is_modal) {
                             if (findSdlWindow(child.id)) |child_sdl_window| {
-                                c.SDL_RaiseWindow(child_sdl_window.handle);
+                                sdl.SDL_RaiseWindow(child_sdl_window.handle);
                             }
                         }
                     }
                 }
             },
-            c.SDL_WINDOWEVENT_ENTER => {
+            sdl.SDL_WINDOWEVENT_ENTER => {
                 var enter_event = gui.Event{ .type = .Enter };
                 sdl_window.window.handleEvent(&enter_event);
             },
-            c.SDL_WINDOWEVENT_LEAVE => {
+            sdl.SDL_WINDOWEVENT_LEAVE => {
                 var leave_event = gui.Event{ .type = .Leave };
                 sdl_window.window.handleEvent(&leave_event);
             },
-            c.SDL_WINDOWEVENT_FOCUS_GAINED => {
+            sdl.SDL_WINDOWEVENT_FOCUS_GAINED => {
                 sdl_window.window.is_active = true;
             },
-            c.SDL_WINDOWEVENT_FOCUS_LOST => {
+            sdl.SDL_WINDOWEVENT_FOCUS_LOST => {
                 sdl_window.window.is_active = false;
                 var leave_event = gui.Event{ .type = .Leave };
                 sdl_window.window.handleEvent(&leave_event);
             },
-            c.SDL_WINDOWEVENT_MINIMIZED => {
+            sdl.SDL_WINDOWEVENT_MINIMIZED => {
                 if (sdl_window.window.isBlockedByModal()) {
-                    c.SDL_RestoreWindow(sdl_window.handle);
+                    sdl.SDL_RestoreWindow(sdl_window.handle);
                 }
             },
-            c.SDL_WINDOWEVENT_SIZE_CHANGED => {
+            sdl.SDL_WINDOWEVENT_SIZE_CHANGED => {
                 if (!sdl_window.isMaximized()) {
                     sdl_window.windowed_width = sdl_window.video_width;
                     sdl_window.windowed_height = sdl_window.video_height;
                 }
             },
-            c.SDL_WINDOWEVENT_CLOSE => app.requestWindowClose(sdl_window.window),
+            sdl.SDL_WINDOWEVENT_CLOSE => app.requestWindowClose(sdl_window.window),
             else => {},
         }
     }
@@ -339,18 +341,18 @@ fn sdlProcessWindowEvent(window_event: c.SDL_WindowEvent) void {
 
 fn sdlQueryModState() u4 {
     var modifiers: u4 = 0;
-    const sdl_mod_state = c.SDL_GetModState();
-    if ((sdl_mod_state & c.KMOD_ALT) != 0) modifiers |= @as(u4, 1) << @intFromEnum(gui.Modifier.alt);
-    if ((sdl_mod_state & c.KMOD_CTRL) != 0) modifiers |= @as(u4, 1) << @intFromEnum(gui.Modifier.ctrl);
-    if ((sdl_mod_state & c.KMOD_SHIFT) != 0) modifiers |= @as(u4, 1) << @intFromEnum(gui.Modifier.shift);
-    if ((sdl_mod_state & c.KMOD_GUI) != 0) modifiers |= @as(u4, 1) << @intFromEnum(gui.Modifier.super);
+    const sdl_mod_state = sdl.SDL_GetModState();
+    if ((sdl_mod_state & sdl.KMOD_ALT) != 0) modifiers |= @as(u4, 1) << @intFromEnum(gui.Modifier.alt);
+    if ((sdl_mod_state & sdl.KMOD_CTRL) != 0) modifiers |= @as(u4, 1) << @intFromEnum(gui.Modifier.ctrl);
+    if ((sdl_mod_state & sdl.KMOD_SHIFT) != 0) modifiers |= @as(u4, 1) << @intFromEnum(gui.Modifier.shift);
+    if ((sdl_mod_state & sdl.KMOD_GUI) != 0) modifiers |= @as(u4, 1) << @intFromEnum(gui.Modifier.super);
     return modifiers;
 }
 
-fn sdlProcessMouseMotion(motion_event: c.SDL_MouseMotionEvent) void {
+fn sdlProcessMouseMotion(motion_event: sdl.SDL_MouseMotionEvent) void {
     if (findSdlWindow(motion_event.windowID)) |sdl_window| {
         sdl_window.dirty = true;
-        if (motion_event.which == c.SDL_TOUCH_MOUSEID) {} else {
+        if (motion_event.which == sdl.SDL_TOUCH_MOUSEID) {} else {
             var mx: f32 = @as(f32, @floatFromInt(motion_event.x));
             var my: f32 = @as(f32, @floatFromInt(motion_event.y));
             if (builtin.os.tag == .windows or builtin.os.tag == .linux) {
@@ -373,7 +375,7 @@ fn sdlProcessMouseMotion(motion_event: c.SDL_MouseMotionEvent) void {
     }
 }
 
-fn sdlProcessMouseButton(button_event: c.SDL_MouseButtonEvent) void {
+fn sdlProcessMouseButton(button_event: sdl.SDL_MouseButtonEvent) void {
     if (is_touch_panning) return; // reject accidental button presses
     if (findSdlWindow(button_event.windowID)) |sdl_window| {
         sdl_window.dirty = true;
@@ -385,21 +387,21 @@ fn sdlProcessMouseButton(button_event: c.SDL_MouseButtonEvent) void {
         }
         var me = gui.MouseEvent{
             .event = gui.Event{
-                .type = if (button_event.state == c.SDL_PRESSED)
+                .type = if (button_event.state == sdl.SDL_PRESSED)
                     .MouseDown
                 else
                     .MouseUp,
             },
             .button = switch (button_event.button) {
-                c.SDL_BUTTON_LEFT => .left,
-                c.SDL_BUTTON_MIDDLE => .middle,
-                c.SDL_BUTTON_RIGHT => .right,
-                c.SDL_BUTTON_X1 => .back,
-                c.SDL_BUTTON_X2 => .forward,
+                sdl.SDL_BUTTON_LEFT => .left,
+                sdl.SDL_BUTTON_MIDDLE => .middle,
+                sdl.SDL_BUTTON_RIGHT => .right,
+                sdl.SDL_BUTTON_X1 => .back,
+                sdl.SDL_BUTTON_X2 => .forward,
                 else => .none,
             },
             .click_count = button_event.clicks,
-            .state = c.SDL_GetMouseState(null, null),
+            .state = sdl.SDL_GetMouseState(null, null),
             .modifiers = sdlQueryModState(),
             .x = mx,
             .y = my,
@@ -409,17 +411,17 @@ fn sdlProcessMouseButton(button_event: c.SDL_MouseButtonEvent) void {
         sdl_window.window.handleEvent(&me.event);
 
         // TODO maybe if app gains focus?
-        _ = c.SDL_CaptureMouse(if (button_event.state == c.SDL_PRESSED) c.SDL_TRUE else c.SDL_FALSE);
+        _ = sdl.SDL_CaptureMouse(if (button_event.state == sdl.SDL_PRESSED) sdl.SDL_TRUE else sdl.SDL_FALSE);
     }
 }
 
-fn sdlProcessMouseWheel(wheel_event: c.SDL_MouseWheelEvent) void {
+fn sdlProcessMouseWheel(wheel_event: sdl.SDL_MouseWheelEvent) void {
     if (findSdlWindow(wheel_event.windowID)) |sdl_window| {
         sdl_window.dirty = true;
 
         var x: i32 = undefined;
         var y: i32 = undefined;
-        const state = c.SDL_GetMouseState(&x, &y);
+        const state = sdl.SDL_GetMouseState(&x, &y);
         var mx: f32 = @as(f32, @floatFromInt(x));
         var my: f32 = @as(f32, @floatFromInt(y));
         if (builtin.os.tag == .windows or builtin.os.tag == .linux) {
@@ -427,7 +429,7 @@ fn sdlProcessMouseWheel(wheel_event: c.SDL_MouseWheelEvent) void {
             my /= sdl_window.video_scale;
         }
 
-        if (wheel_event.which == @as(c_int, @bitCast(c.SDL_TOUCH_MOUSEID)) or has_touch_mouse) {
+        if (wheel_event.which == @as(c_int, @bitCast(sdl.SDL_TOUCH_MOUSEID)) or has_touch_mouse) {
             is_touch_panning = true;
             const magic_factor = 4; // TODO: we need floating point resolution
             var se = gui.TouchEvent{
@@ -438,7 +440,7 @@ fn sdlProcessMouseWheel(wheel_event: c.SDL_MouseWheelEvent) void {
                 .dy = magic_factor * @as(f32, @floatFromInt(wheel_event.y)),
                 .zoom = 0,
             };
-            if (wheel_event.direction == c.SDL_MOUSEWHEEL_FLIPPED) {
+            if (wheel_event.direction == sdl.SDL_MOUSEWHEEL_FLIPPED) {
                 se.dx *= -1;
             }
             sdl_window.window.handleEvent(&se.event);
@@ -459,12 +461,12 @@ fn sdlProcessMouseWheel(wheel_event: c.SDL_MouseWheelEvent) void {
     }
 }
 
-fn sdlProcessTouchFinger(finger_event: c.SDL_TouchFingerEvent) void {
-    if (finger_event.touchId == @as(c_int, @bitCast(c.SDL_TOUCH_MOUSEID))) {
+fn sdlProcessTouchFinger(finger_event: sdl.SDL_TouchFingerEvent) void {
+    if (finger_event.touchId == @as(c_int, @bitCast(sdl.SDL_TOUCH_MOUSEID))) {
         // has_touch_mouse = true; // doesn't work on windows
     }
     touch_window_id = finger_event.windowID;
-    if (finger_event.type == c.SDL_FINGERUP) {
+    if (finger_event.type == sdl.SDL_FINGERUP) {
         // reset touch gestures
         is_touch_panning = false;
         is_touch_zooming = false;
@@ -472,56 +474,56 @@ fn sdlProcessTouchFinger(finger_event: c.SDL_TouchFingerEvent) void {
     // std.debug.print("touchId: {}\n", .{finger_event.touchId});
 }
 
-fn translateSdlKey(sym: c.SDL_Keycode) gui.KeyCode {
+fn translateSdlKey(sym: sdl.SDL_Keycode) gui.KeyCode {
     return switch (sym) {
-        c.SDLK_RETURN, c.SDLK_KP_ENTER => .Return,
-        c.SDLK_0, c.SDLK_KP_0 => .D0,
-        c.SDLK_1, c.SDLK_KP_1 => .D1,
-        c.SDLK_2, c.SDLK_KP_2 => .D2,
-        c.SDLK_3, c.SDLK_KP_3 => .D3,
-        c.SDLK_4, c.SDLK_KP_4 => .D4,
-        c.SDLK_5, c.SDLK_KP_5 => .D5,
-        c.SDLK_6, c.SDLK_KP_6 => .D6,
-        c.SDLK_7, c.SDLK_KP_7 => .D7,
-        c.SDLK_8, c.SDLK_KP_8 => .D8,
-        c.SDLK_9, c.SDLK_KP_9 => .D9,
-        c.SDLK_PERIOD, c.SDLK_KP_DECIMAL => .Period,
-        c.SDLK_COMMA => .Comma,
-        c.SDLK_ESCAPE => .Escape,
-        c.SDLK_BACKSPACE => .Backspace,
-        c.SDLK_SPACE => .Space,
-        c.SDLK_PLUS, c.SDLK_KP_PLUS => .Plus,
-        c.SDLK_MINUS, c.SDLK_KP_MINUS => .Minus,
-        c.SDLK_ASTERISK, c.SDLK_KP_MULTIPLY => .Asterisk,
-        c.SDLK_SLASH, c.SDLK_KP_DIVIDE => .Slash,
-        c.SDLK_PERCENT => .Percent,
-        c.SDLK_DELETE => .Delete,
-        c.SDLK_HOME => .Home,
-        c.SDLK_END => .End,
-        c.SDLK_TAB => .Tab,
-        c.SDLK_LSHIFT => .LShift,
-        c.SDLK_RSHIFT => .RShift,
-        c.SDLK_LCTRL => .LCtrl,
-        c.SDLK_RCTRL => .RCtrl,
-        c.SDLK_LALT => .LAlt,
-        c.SDLK_RALT => .RAlt,
-        c.SDLK_LEFT => .Left,
-        c.SDLK_RIGHT => .Right,
-        c.SDLK_UP => .Up,
-        c.SDLK_DOWN => .Down,
-        c.SDLK_a...c.SDLK_z => @as(gui.KeyCode, @enumFromInt(@intFromEnum(gui.KeyCode.A) + @as(u8, @intCast(sym - c.SDLK_a)))),
-        c.SDLK_HASH => .Hash,
+        sdl.SDLK_RETURN, sdl.SDLK_KP_ENTER => .Return,
+        sdl.SDLK_0, sdl.SDLK_KP_0 => .D0,
+        sdl.SDLK_1, sdl.SDLK_KP_1 => .D1,
+        sdl.SDLK_2, sdl.SDLK_KP_2 => .D2,
+        sdl.SDLK_3, sdl.SDLK_KP_3 => .D3,
+        sdl.SDLK_4, sdl.SDLK_KP_4 => .D4,
+        sdl.SDLK_5, sdl.SDLK_KP_5 => .D5,
+        sdl.SDLK_6, sdl.SDLK_KP_6 => .D6,
+        sdl.SDLK_7, sdl.SDLK_KP_7 => .D7,
+        sdl.SDLK_8, sdl.SDLK_KP_8 => .D8,
+        sdl.SDLK_9, sdl.SDLK_KP_9 => .D9,
+        sdl.SDLK_PERIOD, sdl.SDLK_KP_DECIMAL => .Period,
+        sdl.SDLK_COMMA => .Comma,
+        sdl.SDLK_ESCAPE => .Escape,
+        sdl.SDLK_BACKSPACE => .Backspace,
+        sdl.SDLK_SPACE => .Space,
+        sdl.SDLK_PLUS, sdl.SDLK_KP_PLUS => .Plus,
+        sdl.SDLK_MINUS, sdl.SDLK_KP_MINUS => .Minus,
+        sdl.SDLK_ASTERISK, sdl.SDLK_KP_MULTIPLY => .Asterisk,
+        sdl.SDLK_SLASH, sdl.SDLK_KP_DIVIDE => .Slash,
+        sdl.SDLK_PERCENT => .Percent,
+        sdl.SDLK_DELETE => .Delete,
+        sdl.SDLK_HOME => .Home,
+        sdl.SDLK_END => .End,
+        sdl.SDLK_TAB => .Tab,
+        sdl.SDLK_LSHIFT => .LShift,
+        sdl.SDLK_RSHIFT => .RShift,
+        sdl.SDLK_LCTRL => .LCtrl,
+        sdl.SDLK_RCTRL => .RCtrl,
+        sdl.SDLK_LALT => .LAlt,
+        sdl.SDLK_RALT => .RAlt,
+        sdl.SDLK_LEFT => .Left,
+        sdl.SDLK_RIGHT => .Right,
+        sdl.SDLK_UP => .Up,
+        sdl.SDLK_DOWN => .Down,
+        sdl.SDLK_a...sdl.SDLK_z => @as(gui.KeyCode, @enumFromInt(@intFromEnum(gui.KeyCode.A) + @as(u8, @intCast(sym - sdl.SDLK_a)))),
+        sdl.SDLK_HASH => .Hash,
         else => .Unknown,
     };
 }
 
-fn sdlProcessKey(key_event: c.SDL_KeyboardEvent) void {
+fn sdlProcessKey(key_event: sdl.SDL_KeyboardEvent) void {
     if (findSdlWindow(key_event.windowID)) |sdl_window| {
         sdl_window.dirty = true;
         var ke = gui.KeyEvent{
-            .event = gui.Event{ .type = if (key_event.type == c.SDL_KEYDOWN) .KeyDown else .KeyUp },
+            .event = gui.Event{ .type = if (key_event.type == sdl.SDL_KEYDOWN) .KeyDown else .KeyUp },
             .key = translateSdlKey(key_event.keysym.sym),
-            .down = key_event.state == c.SDL_PRESSED,
+            .down = key_event.state == sdl.SDL_PRESSED,
             .repeat = key_event.repeat > 0,
             .modifiers = sdlQueryModState(),
         };
@@ -531,7 +533,7 @@ fn sdlProcessKey(key_event: c.SDL_KeyboardEvent) void {
 
 var first_surrogate_half: ?u16 = null;
 
-fn sdlProcessTextInput(text_event: c.SDL_TextInputEvent) void {
+fn sdlProcessTextInput(text_event: sdl.SDL_TextInputEvent) void {
     if (findSdlWindow(text_event.windowID)) |sdl_window| {
         sdl_window.dirty = true;
         const text = mem.sliceTo(&text_event.text, 0);
@@ -554,7 +556,7 @@ fn sdlProcessTextInput(text_event: c.SDL_TextInputEvent) void {
                     if (first_surrogate_half) |first_surrogate0| {
                         const utf16 = [_]u16{ first_surrogate0, surrogate };
                         var utf8 = [_]u8{0} ** 4;
-                        _ = std.unicode.utf16leToUtf8(&utf8, &utf16) catch unreachable;
+                        _ = std.unicode.utf16LeToUtf8(&utf8, &utf16) catch unreachable;
                         first_surrogate_half = null;
 
                         var te = gui.TextInputEvent{
@@ -571,18 +573,18 @@ fn sdlProcessTextInput(text_event: c.SDL_TextInputEvent) void {
     }
 }
 
-fn sdlProcessUserEvent(user_event: c.SDL_UserEvent) void {
+fn sdlProcessUserEvent(user_event: sdl.SDL_UserEvent) void {
     markAllWindowsAsDirty();
     switch (user_event.code) {
-        sdl.SDL_USEREVENT_TIMER => {
-            var timer = @as(*gui.Timer, @alignCast(@ptrCast(user_event.data1)));
-            timer.onElapsed();
-        },
+        // sdl.SDL_USEREVENT_TIMER => {
+        //     var timer = @as(*gui.Timer, @alignCast(@ptrCast(user_event.data1)));
+        //     timer.onElapsed();
+        // },
         else => {},
     }
 }
 
-fn sdlProcessDropFile(drop_event: c.SDL_DropEvent) void {
+fn sdlProcessDropFile(drop_event: sdl.SDL_DropEvent) void {
     markAllWindowsAsDirty();
     // const file_path = std.mem.sliceTo(drop_event.file, 0);
     // editor_widget.tryLoadDocument(file_path);
@@ -719,13 +721,13 @@ pub fn sdlSetClipboardText(allocator: std.mem.Allocator, text: []const u8) !void
     sdlProcessClipboardUpdate(); // broadcasts a gui.ClipboardUpdate event to all windows
 }
 
-fn sdlHandleEvent(sdl_event: c.SDL_Event) void {
+fn sdlHandleEvent(sdl_event: sdl.SDL_Event) void {
     switch (sdl_event.type) {
         sdl.SDL_WINDOWEVENT => sdlProcessWindowEvent(sdl_event.window),
         sdl.SDL_MOUSEMOTION => sdlProcessMouseMotion(sdl_event.motion),
         sdl.SDL_MOUSEBUTTONDOWN, sdl.SDL_MOUSEBUTTONUP => sdlProcessMouseButton(sdl_event.button),
         sdl.SDL_MOUSEWHEEL => sdlProcessMouseWheel(sdl_event.wheel),
-        sdl.SDL_FINGERMOTION, sdl.SDL_FINGERDOWN, c.SDL_FINGERUP => sdlProcessTouchFinger(sdl_event.tfinger),
+        sdl.SDL_FINGERMOTION, sdl.SDL_FINGERDOWN, sdl.SDL_FINGERUP => sdlProcessTouchFinger(sdl_event.tfinger),
         sdl.SDL_KEYDOWN, sdl.SDL_KEYUP => sdlProcessKey(sdl_event.key),
         sdl.SDL_TEXTINPUT => sdlProcessTextInput(sdl_event.text),
         sdl.SDL_USEREVENT => sdlProcessUserEvent(sdl_event.user),
@@ -741,6 +743,7 @@ fn sdlHandleEvent(sdl_event: c.SDL_Event) void {
 var sdl_windows: std.ArrayList(SdlWindow) = undefined;
 
 var app: *gui.Application = undefined;
+var panel_widget: *PanelWidget = undefined;
 
 var window_config_file_path: ?[]u8 = null;
 
@@ -839,22 +842,37 @@ pub fn main() !void {
     sdl.SDL_AddEventWatch(sdlEventWatch, null);
 
 
-    //TODO: add .gui.Application struct ...
-    
     vg = try nvg.gl.init(allocator, .{});
     defer vg.deinit();
 
+    // TODO: gui does not do much yet, but add resources around gui as needed.
+    gui.init(vg);
+    defer gui.deinit(vg);
+
+    _ = vg.createFontMem("guifont", data.fonts.roboto_regular);
+    _ = vg.createFontMem("guifontbold", data.fonts.roboto_bold);
+
+    const rect = Rect(f32).make(0, 0, main_window.width, main_window.height);
+    panel_widget = try PanelWidget.init(allocator, rect, vg);
+    defer panel_widget.deinit(vg);
+    // _ = &panel_widget;
+    // editor_widget = try EditorWidget.init(allocator, rect, vg);
+    // defer editor_widget.deinit(vg);
+    main_window.setMainWidget(&panel_widget.widget);
+    main_window.close_request_context = @intFromPtr(main_window);
+    main_window.onCloseRequestFn = onMainWindowCloseRequest;
+
     // quit app when there are no more windows open
-    while (true) {
+    while (app.windows.items.len > 0) {
         var sdl_event: sdl.SDL_Event = undefined;
         switch (mainloop_type) {
             .wait_event => if (sdl.SDL_WaitEvent(&sdl_event) == 0) {
                 sdl.SDL_Log("SDL_WaitEvent failed: %s", sdl.SDL_GetError());
             } else {
-                // sdlHandleEvent(sdl_event);
+                sdlHandleEvent(sdl_event);
             },
             .regular_interval => while (sdl.SDL_PollEvent(&sdl_event) != 0) {
-                // sdlHandleEvent(sdl_event);
+                sdlHandleEvent(sdl_event);
             },
         }
 
@@ -872,5 +890,21 @@ pub fn main() !void {
         //
 
     try bw.flush(); // Don't forget to flush!
+}
+
+
+fn onMainWindowCloseRequest(context: usize) bool {
+    // TODO: implement this function
+    //
+    // if (editor_widget.has_unsaved_changes) {
+    //     editor_widget.showUnsavedChangesDialog(onUnsavedChangesDialogResult, context);
+    //     return false;
+    // }
+    const window = @as(*gui.Window, @ptrFromInt(context));
+    _ = &window;
+    // if (window_config_file_path) |file_path| {
+    //     writeWindowConfig(window, file_path) catch {}; // don't care
+    // }
+    return true;
 }
 
