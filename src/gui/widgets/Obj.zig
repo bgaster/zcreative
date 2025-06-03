@@ -6,7 +6,7 @@ const Rect = @import("../geometry.zig").Rect;
 const Point = @import("../geometry.zig").Point;
 const event = @import("../event.zig");
 
-const Label = @This();
+const Obj = @This();
 
 widget: gui.Widget,
 allocator: std.mem.Allocator,
@@ -18,7 +18,7 @@ draw_border: bool = true,
 hovered: bool = false,
 focused: bool = false,
 pressed: bool = false,
-presssed: bool = false,
+selected: bool = false,
 
 onClickFn: ?*const fn (*Self) void = null,
 onEnterFn: ?*const fn (*Self) void = null,
@@ -52,7 +52,7 @@ pub fn draw(widget: *gui.Widget, vg: nvg) void {
     const rect = widget.relative_rect;
     vg.save();
     if (self.draw_border) {
-        gui.drawPanelInset(vg, rect.x, rect.y, rect.w, rect.h, 1);
+        gui.drawPanel(vg, rect.x, rect.y, rect.w, rect.h, 1, self.hovered, self.pressed, self.selected);
         vg.intersectScissor(rect.x + 1, rect.y + 1, rect.w - 2, rect.h - 2);
     } else {
         vg.intersectScissor(rect.x, rect.y, rect.w, rect.h);
@@ -134,6 +134,5 @@ fn onEnter(widget: *gui.Widget) void {
 fn onLeave(widget: *gui.Widget) void {
     const self: *Self = @fieldParentPtr("widget", widget);
     self.hovered = false;
-    self.presssed = false;
     if (self.onLeaveFn) |leaveFn| leaveFn(self);
 }

@@ -4,6 +4,7 @@ const ArrayList = std.ArrayList;
 
 const nvg = @import("nanovg");
 const gui = @import("gui/gui.zig");
+const cvs = @import("CanvasWidget.zig");
 const Point = gui.geometry.Point;
 const Rect = gui.geometry.Rect;
 
@@ -11,9 +12,7 @@ pub const PanelWidget = @This();
 
 widget: gui.Widget,
 allocator: Allocator,
-labels: ArrayList(*gui.Label),
-dragging: bool,
-select: Rect(f32),
+canvas: *cvs.CanvasWidget,
 
 const Self = @This();
 
@@ -23,27 +22,19 @@ pub fn init(allocator: Allocator, rect: Rect(f32), vg: nvg) !*Self {
     self.* = Self{
         .widget = gui.Widget.init(allocator, rect),
         .allocator = allocator,
-        .labels = ArrayList(*gui.Label).init(allocator),
-        .dragging = false,
-        .select = Rect(f32).make(0,0,0,0),
+        .canvas = try cvs.init(allocator, rect, vg),
     };
 
+    try self.widget.addChild(&self.canvas.widget);
     self.widget.onResizeFn = onResize;
-    self.widget.onKeyDownFn = onKeyDown;
-    self.widget.onMouseDownFn = onMouseDown;
-    self.widget.onMouseUpFn = onMouseUp;
-    self.widget.onMouseMoveFn = onMouseMove;
 
     return self;
 }
 
 pub fn deinit(self: *Self, vg: nvg) void {
     _ = &vg;
+    self.canvas.deinit(vg);
     self.widget.deinit();
-    for (self.labels.items) |item| {
-        item.deinit();
-    }
-    self.labels.deinit();
     self.allocator.destroy(self);
 }
 
@@ -79,46 +70,19 @@ fn onKeyDown(widget: *gui.Widget, key_event: *gui.KeyEvent) void {
     }
 }
 
-fn onMouseDownErr(widget: *gui.Widget, mouse_event: *gui.MouseEvent) !void {
-    const self: *Self = @fieldParentPtr("widget", widget);
-    // double click on panel to add object...
-    if (mouse_event.button == gui.MouseButton.left) {
-        if (mouse_event.click_count == 1) {
-            self.dragging = true;
-            self.select = Rect(f32).make(mouse_event.x, mouse_event.y, 0, 0);
-        }
-        else if (mouse_event.click_count == 2) {
-            self.dragging = false;
-            self.select = Rect(f32).make(0, 0, 0, 0);
-            const label = try gui.Label.init(self.allocator, Rect(f32).make(mouse_event.x, mouse_event.y, 37, 20), "+ 10"); 
-            try self.labels.append(label);
-            try self.widget.addChild(&self.labels.items[self.labels.items.len-1].widget);
-        }
-    }
-    else {
-    }
-}
+//TODO: think about removing these...
 
 fn onMouseDown(widget: *gui.Widget, mouse_event: *gui.MouseEvent) void {
-    onMouseDownErr(widget, mouse_event) catch {
-    };
+    _ = widget;
+    _ = mouse_event;
 }
 
 fn onMouseMove(widget: *gui.Widget, mouse_event: *const gui.MouseEvent) void {
-    const self: *Self = @fieldParentPtr("widget", widget);
-    _ = &mouse_event;
-    if (self.dragging) {
-        self.select = Rect(f32).make(
-            self.select.x, self.select.y, 
-            self.select.x - mouse_event.x,  self.select.y - mouse_event.y);
-        // std.debug.print("{d:.1}, {d:.1}, {d:.1}, {d:.1}\n", .{self.select.x, self.select.y, self.select.w, self.select.h});
-    }
+    _ = widget;
+    _ = mouse_event;
 }
 
 fn onMouseUp(widget: *gui.Widget, mouse_event: *const gui.MouseEvent) void {
-    const self: *Self = @fieldParentPtr("widget", widget);
-    if (mouse_event.button == gui.MouseButton.left and self.dragging) {
-        self.dragging = false;
-        self.select = Rect(f32).make(0,0,0,0);
-    }
+    _ = widget;
+    _ = mouse_event;
 }

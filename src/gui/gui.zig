@@ -9,7 +9,7 @@ pub const Timer = @import("Timer.zig");
 pub const Application = @import("Application.zig");
 pub const Window = @import("Window.zig");
 pub const Widget = @import("Widget.zig");
-pub const Label = @import("widgets/Label.zig");
+pub const Obj = @import("widgets/Obj.zig");
 
 const ThemeColors = struct {
     background: nvg.Color,
@@ -48,7 +48,7 @@ pub fn pixelsToPoints(pixel_size: f32) f32 {
     return pixel_size * 96.0 / 72.0;
 }
 
-pub fn drawPanel(vg: nvg, x: f32, y: f32, w: f32, h: f32, depth: f32, hovered: bool, pressed: bool) void {
+pub fn drawPanel(vg: nvg, x: f32, y: f32, w: f32, h: f32, depth: f32, hovered: bool, pressed: bool, selected: bool) void {
     if (w <= 0 or h <= 0) return;
 
     var color_bg = theme_colors.background;
@@ -92,13 +92,32 @@ pub fn drawPanel(vg: nvg, x: f32, y: f32, w: f32, h: f32, depth: f32, hovered: b
     vg.closePath();
     vg.fillColor(color_light);
     vg.fill();
+
+    if (selected) {
+        vg.beginPath();
+        vg.strokeWidth(2);
+        vg.moveTo(x + w, y);
+        vg.lineTo(x, y);
+        vg.lineTo(x, y + h);
+        vg.lineTo(x + depth, y + h - depth);
+        vg.lineTo(x + depth, y + depth);
+        vg.lineTo(x + w - depth, y + depth);
+        vg.closePath();
+        vg.strokeColor(theme_colors.select);
+        vg.stroke();
+    }
 }
 
-pub fn drawPanelInset(vg: nvg, x: f32, y: f32, w: f32, h: f32, depth: f32) void {
+pub fn drawPanelInset(vg: nvg, x: f32, y: f32, w: f32, h: f32, depth: f32, selected: bool) void {
     if (w <= 0 or h <= 0) return;
 
-    const color_shadow = theme_colors.shadow;
-    const color_light = theme_colors.light;
+    var color_shadow = theme_colors.shadow;
+    var color_light = theme_colors.light;
+
+    if (selected) {
+        color_shadow = theme_colors.select;
+        color_light  = theme_colors.select;
+    }
 
     // light
     vg.beginPath();
