@@ -4,6 +4,7 @@ const nvg = @import("nanovg");
 const gui = @import("gui.zig");
 const event = @import("event.zig");
 const Point = @import("geometry.zig").Point;
+const Rect = @import("geometry.zig").Rect;
 
 const Window = @This();
 
@@ -230,6 +231,10 @@ pub fn setSize(self: *Self, width: f32, height: f32) void {
     if (self.main_widget) |main_widget| {
         main_widget.setSize(width, height);
     }
+}
+
+pub fn getSize(self: *Self) struct { f32, f32 } {
+    return .{ self.width, self.height };
 }
 
 pub fn setTitle(self: *Self, title: [:0]const u8) void {
