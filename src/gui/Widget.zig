@@ -161,6 +161,7 @@ pub fn drag(self: *Self, x_arg: f32, y_arg: f32) void {
     for (self.children.items) |child| {
         child.drag(x_arg,y_arg);
     }
+    // now move self, if selected
     if (self.selected) {
         const size_w, const size_h = if (self.getWindow()) |ws| ws.getSize() else .{ 0, 0 }; 
         const rect = self.getWindowRelativeRect();
@@ -173,8 +174,6 @@ pub fn drag(self: *Self, x_arg: f32, y_arg: f32) void {
         self.setPosition(rect.x + x, rect.y + y);
     }
 }
-
-
 
 pub fn drawChildren(self: *Self, vg: nvg) void {
     vg.save();
