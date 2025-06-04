@@ -24,6 +24,7 @@ layout: Layout = Layout{},
 focus_policy: event.FocusPolicy = event.FocusPolicy{},
 enabled: bool = true,
 visible: bool = true,
+selected: bool = false,
 
 drawFn: *const fn (*Widget, vg: nvg) void = drawChildren,
 
@@ -41,7 +42,10 @@ onFocusFn: *const fn (*Widget, *event.FocusEvent) void = onFocus,
 onBlurFn: *const fn (*Widget, *event.FocusEvent) void = onBlur,
 onEnterFn: *const fn (*Widget) void = onEnter,
 onLeaveFn: *const fn (*Widget) void = onLeave,
+setSelectFn: *const fn (*Widget, bool) void = setSelectChildren,
 onClipboardUpdateFn: *const fn (*Widget) void = onClipboardUpdate,
+
+// onDragFn: *const fn (*Widget, Rect(f32)) void = drag,
 
 const Self = @This();
 
@@ -77,6 +81,21 @@ pub fn isEnabled(self: Self) bool {
         return parent.isEnabled();
     }
     return true;
+}
+
+pub fn setSelected(self: *Self, s: bool) void {
+    self.setSelectFn(self, s);
+}
+
+pub fn setSelectChildren(self: *Self, s: bool) void {
+    self.selected = s;
+    for (self.children.items) |child| {
+        child.setSelected(s);
+    }
+}
+
+pub fn isSelected(self: Self) bool {
+    return self.selected;
 }
 
 pub fn isFocused(self: *Self) bool {
@@ -128,6 +147,34 @@ pub fn setSize(self: *Self, width: f32, height: f32) void {
         self.handleEvent(&re.event);
     }
 }
+
+pub fn findRoot(self: *Self) *Self {
+    var root = self;
+    while(root.parent) |parent| {
+        root = parent;
+    }
+    return root;
+}
+
+pub fn drag(self: *Self, x_arg: f32, y_arg: f32) void {
+    // move any selected children
+    for (self.children.items) |child| {
+        child.drag(x_arg,y_arg);
+    }
+    if (self.selected) {
+        const size_w, const size_h = if (self.getWindow()) |ws| ws.getSize() else .{ 0, 0 }; 
+        const rect = self.getWindowRelativeRect();
+        var x = x_arg / (rect.w - 1);
+        const value = 0.0 + x * (size_w-rect.w - 0);
+        x = (value - 0) / ((size_w/2) - 0);
+        var y = y_arg / (rect.h - 1);
+        const value_y = 0.0 + y * (size_h-rect.y - 0);
+        y = (value_y - 0) / ((size_h/2) - 0);
+        self.setPosition(rect.x + x, rect.y + y);
+    }
+}
+
+
 
 pub fn drawChildren(self: *Self, vg: nvg) void {
     vg.save();

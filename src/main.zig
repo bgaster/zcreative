@@ -576,10 +576,10 @@ fn sdlProcessTextInput(text_event: sdl.SDL_TextInputEvent) void {
 fn sdlProcessUserEvent(user_event: sdl.SDL_UserEvent) void {
     markAllWindowsAsDirty();
     switch (user_event.code) {
-        // sdl.SDL_USEREVENT_TIMER => {
-        //     var timer = @as(*gui.Timer, @alignCast(@ptrCast(user_event.data1)));
-        //     timer.onElapsed();
-        // },
+        SDL_USEREVENT_TIMER => {
+            var timer = @as(*gui.Timer, @alignCast(@ptrCast(user_event.data1)));
+            timer.onElapsed();
+        },
         else => {},
     }
 }

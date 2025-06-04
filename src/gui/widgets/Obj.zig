@@ -18,7 +18,9 @@ draw_border: bool = true,
 hovered: bool = false,
 focused: bool = false,
 pressed: bool = false,
-selected: bool = false,
+
+mouse_click_timer: gui.Timer,
+mouse_click_time_elapsed: u32 = 0,
 
 onClickFn: ?*const fn (*Self) void = null,
 onEnterFn: ?*const fn (*Self) void = null,
@@ -32,6 +34,11 @@ pub fn init(allocator: std.mem.Allocator, rect: Rect(f32), text: []const u8) !*S
         .widget = gui.Widget.init(allocator, rect),
         .allocator = allocator,
         .text = text,
+        .mouse_click_timer = gui.Timer{
+            .on_elapsed_fn = onTimerElapsed,
+            .ctx = @intFromPtr(self),
+        },
+        .mouse_click_time_elapsed = 500, // average time for double-click is 500 miliseconds
     };
     self.widget.drawFn = draw;
     self.widget.onMouseMoveFn = onMouseMove;
@@ -52,7 +59,7 @@ pub fn draw(widget: *gui.Widget, vg: nvg) void {
     const rect = widget.relative_rect;
     vg.save();
     if (self.draw_border) {
-        gui.drawPanel(vg, rect.x, rect.y, rect.w, rect.h, 1, self.hovered, self.pressed, self.selected);
+        gui.drawPanel(vg, rect.x, rect.y, rect.w, rect.h, 1, self.hovered, self.pressed, widget.isSelected());
         vg.intersectScissor(rect.x + 1, rect.y + 1, rect.w - 2, rect.h - 2);
     } else {
         vg.intersectScissor(rect.x, rect.y, rect.w, rect.h);
@@ -98,15 +105,19 @@ pub fn draw(widget: *gui.Widget, vg: nvg) void {
 fn onMouseMove(widget: *gui.Widget, mouse_event: *const gui.MouseEvent) void {
     const self: *Self = @fieldParentPtr("widget", widget);
     if (self.pressed) {
-        const size_w, const size_h = if (widget.getWindow()) |ws| ws.getSize() else .{ 0, 0 }; 
-        const rect = widget.getWindowRelativeRect();
-        var x = mouse_event.x / (rect.w - 1);
-        const value = 0.0 + x * (size_w-rect.w - 0);
-        x = (value - 0) / ((size_w/2) - 0);
-        var y = mouse_event.y / (rect.h - 1);
-        const value_y = 0.0 + y * (size_h-rect.y - 0);
-        y = (value_y - 0) / ((size_h/2) - 0);
-        widget.setPosition(rect.x + x, rect.y + y);
+        self.mouse_click_timer.stop();
+        // const size_w, const size_h = if (widget.getWindow()) |ws| ws.getSize() else .{ 0, 0 }; 
+        // const rect = widget.getWindowRelativeRect();
+        // var x = mouse_event.x / (rect.w - 1);
+        // const value = 0.0 + x * (size_w-rect.w - 0);
+        // x = (value - 0) / ((size_w/2) - 0);
+        // var y = mouse_event.y / (rect.h - 1);
+        // const value_y = 0.0 + y * (size_h-rect.y - 0);
+        // y = (value_y - 0) / ((size_h/2) - 0);
+        // widget.setPosition(rect.x + x, rect.y + y);
+
+        const root = widget.findRoot();
+        root.drag(mouse_event.x, mouse_event.y);
     }
 }
 
@@ -114,6 +125,12 @@ pub fn onMouseDown(widget: *gui.Widget, mouse_event: *const gui.MouseEvent) void
     const self: *Self = @fieldParentPtr("widget", widget);
     if (mouse_event.button == .left and mouse_event.click_count == 1) {
         self.pressed = true;
+
+        if (!mouse_event.isModifierPressed(.shift)) {
+            // start timer to deselect other objects
+            self.mouse_click_timer.start(self.mouse_click_time_elapsed);
+        }
+        widget.setSelected(true);
     }
 }
 
@@ -135,4 +152,14 @@ fn onLeave(widget: *gui.Widget) void {
     const self: *Self = @fieldParentPtr("widget", widget);
     self.hovered = false;
     if (self.onLeaveFn) |leaveFn| leaveFn(self);
+}
+
+fn onTimerElapsed(context: usize) void {
+    const self = @as(*Self, @ptrFromInt(context));
+    self.mouse_click_timer.stop();
+    if (self.widget.parent) |parent| {
+        // deselect any others selected.
+        parent.setSelected(false);
+    }
+    self.widget.setSelected(true);
 }

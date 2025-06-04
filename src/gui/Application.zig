@@ -124,10 +124,21 @@ pub fn getClipboardText(allocator: std.mem.Allocator) !?[]const u8 {
     return null;
 }
 
+pub fn startTimer(timer: *gui.Timer, interval: u32) u32 {
+    if (system.startTimer) |systemStartTimer| {
+        return systemStartTimer(timer, interval);
+    }
+    return 0;
+}
+
+pub fn cancelTimer(id: u32) void {
+    if (system.cancelTimer) |systemCancelTimer| {
+        systemCancelTimer(id);
+    }
+}
+
 pub fn broadcastEvent(self: *Self, event: *gui.Event) void {
     for (self.windows.items) |window| {
         window.handleEvent(event);
     }
 }
-
-// FIXME: timers do we need them here????
