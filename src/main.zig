@@ -5,6 +5,8 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
+const pdparse = @import("pdparse");
+
 const win32 = @import("win32");
 const foundation = win32.foundation;
 const windows = win32.ui.windows_and_messaging;

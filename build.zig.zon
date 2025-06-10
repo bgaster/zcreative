@@ -44,6 +44,10 @@
             .url = "git+https://github.com/ikskuh/SDL.zig.git#424ff5f9245ef352e4c508c77ddaeed2f46bd605",
             .hash = "SDL2-0.0.0-yMCQigakBADGJHtb2ljt13P_cCnG8Y819HRnIibNVPFk",
         },
+        .pdparse = .{
+            .url = "./pdparse/",
+            .hash = "pdparse-0.1.0-x_BkCYwCAAC8QWwb-_d-YDI3OEUjZYQAN35Zu0U0bUJ2",
+        },
     },
     .paths = .{
         "build.zig",

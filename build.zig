@@ -71,12 +71,20 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const pdparse = b.dependency("pdparse", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    // load the "pdparse" module from the package
+    const pdparse_mod = pdparse.module("pdparse");
+
     // This creates another `std.Build.Step.Compile`, but this one builds an executable
     // rather than a static library.
     const exe = b.addExecutable(.{
         .name = "zcreative",
         .root_module = exe_mod,
     });
+    exe.root_module.addImport("pdparse", pdparse_mod);
     exe.root_module.addImport("nanovg", nanovg_zig.module("nanovg"));
     exe.root_module.addImport("data", data_mod);
 
