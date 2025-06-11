@@ -21,7 +21,7 @@ pub fn main() !void {
     defer std.process.argsFree(allocator, args);
 
     if (args.len == 1) {
-        // ?
+        try pdparse.Pd.scanPrompt(allocator);
     } else if (args.len == 2) {
         try pdparse.Pd.scanFile(args[1], allocator);
     } else {

@@ -11,8 +11,6 @@ pub const TokenType = enum {
     // Single-character tokens.
     LEFT_PAREN,
     RIGHT_PAREN,
-    LEFT_BRACE,
-    RIGHT_BRACE,
     COMMA,
     DOT,
     MINUS,
@@ -20,10 +18,16 @@ pub const TokenType = enum {
     SEMICOLON,
     SLASH,
     STAR,
-    DASH,
     HASH,
-    N,
-    X,
+    HASH_N,
+    HASH_X,
+    SEMI,
+
+    // literals
+    IDENTIFIER,
+    TEXT,
+    INT,
+    FLOAT,
 
     // Keywords.
     AND,
@@ -40,6 +44,8 @@ pub const TokenType = enum {
     MESSAGE,
     OBJ,
 
+    ERROR,
+
     EOF,
 };
 
@@ -49,6 +55,7 @@ pub fn initKeywords(allocator: std.mem.Allocator) std.StringHashMap(TokenType) {
     keywords.put("bng", TokenType.BANG) catch unreachable;
     keywords.put("loadbang", TokenType.LOADBANG) catch unreachable;
     keywords.put("connect", TokenType.CONNECT) catch unreachable;
+    keywords.put("canvas", TokenType.CANVAS) catch unreachable;
     keywords.put("obj", TokenType.OBJ) catch unreachable;
     keywords.put("else", TokenType.ELSE) catch unreachable;
     keywords.put("if", TokenType.IF) catch unreachable;

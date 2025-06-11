@@ -20,31 +20,29 @@ pub const Pd = struct {
         defer allocator.free(source);
 
         // unimplemented scanner
-        var scanner = try Scanner.init(allocator);
+        var scanner = try Scanner.init(allocator, source);
         defer scanner.deinit();
-
-        // Scan the source code using the scanner.
-        // try scan(source, &scanner);
     }
 
     pub fn scanPrompt(allocator: std.mem.Allocator) !void {
         const in = std.io.getStdIn().reader();
         const out = std.io.getStdOut().writer();
 
-         // unimplemented scanner
-        var scanner = try Scanner.init(allocator);
-        defer scanner.deinit();
-
         // Enter an infinite loop to continuously prompt the user for input.
         while (true) {
             try out.print("> ", .{});
             // Read a line of input from the user, allocating memory for the line.
-            const source = try in.readUntilDelimiterAlloc(allocator, ' ', std.math.maxInt(usize));
+            const source = try in.readUntilDelimiterAlloc(allocator, ';', std.math.maxInt(usize));
 
             // If the input isn't empty or just a newline, process the input.
             if (source.len > 0 and !std.ascii.eqlIgnoreCase(source, " ")) {
-                // try scan(source, &scanner); // Scan the input by the user.
-                try out.print(" ", .{});
+                var scanner = try Scanner.init(allocator, source);
+                defer scanner.deinit();
+
+                while (!scanner.isAtEnd()) {
+                    try scanner.scanToken(); 
+                    try out.print("\n", .{});
+                }
             }
         }
     }
