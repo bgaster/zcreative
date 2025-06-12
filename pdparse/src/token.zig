@@ -31,6 +31,7 @@ pub const TokenType = enum {
     TEXT,
     INT,
     FLOAT,
+    RGB,
 
     // Keywords.
     AND,

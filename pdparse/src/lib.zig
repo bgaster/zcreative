@@ -19,9 +19,16 @@ pub const Pd = struct {
         };
         defer allocator.free(source);
 
-        // unimplemented scanner
         var scanner = try Scanner.init(allocator, source);
         defer scanner.deinit();
+
+        const out = std.io.getStdOut().writer();
+
+        while (!scanner.isAtEnd()) {
+            try scanner.scanToken(); 
+            try out.print("\n", .{});
+        }
+
     }
 
     pub fn scanPrompt(allocator: std.mem.Allocator) !void {

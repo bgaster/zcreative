@@ -45,6 +45,7 @@ pub fn init(allocator: Allocator, source: []const u8) !*Self {
 pub fn deinit(self: *Self) void {
     self.keyword_map.deinit();
     self.tokens.deinit();
+    self.allocator.destroy(self);
 }
 
 fn skipWhitespace(self: *Self) void {
@@ -103,11 +104,11 @@ pub fn scanToken(self: *Self) !void {
     if (isAlpha(c)) {
         return self.identifier();
     }
+    if (c == '#') {
+        return self.hash();
+    }
 
     switch(c) {
-        '#' => try self.addToken(if (self.match('X')) TokenType.HASH_X 
-                                 else if (self.match('N')) TokenType.HASH_N
-                                 else TokenType.HASH, Literal{ .void = {} }), 
         '(' => try self.addToken(TokenType.LEFT_PAREN, Literal{ .void = {} }),
         ')' => try self.addToken(TokenType.RIGHT_PAREN, Literal{ .void = {} }),
         ';' => try self.addToken(TokenType.SEMICOLON, Literal{ .void = {} }),
@@ -122,6 +123,24 @@ pub fn scanToken(self: *Self) !void {
             const msg: []const u8 = "Unexpected character.";
             try self.addToken(TokenType.ERROR, Literal{ .str = msg });
         }
+    }
+}
+
+fn hash(self: *Scanner) !void {
+    if (self.match('X')) {
+        try self.addToken(TokenType.HASH_X, Literal{ .void = {} });
+    }
+    else if (self.match('N')) {
+        try self.addToken(TokenType.HASH_N, Literal{ .void = {} });
+    }
+    else if (std.ascii.isHex(self.peek())) {
+        while (std.ascii.isHex(self.peek())) {
+                _ = self.advance();
+        }
+        try self.addToken(TokenType.RGB, Literal{ .str = self.source[self.start..self.current] });
+    }
+    else {
+        try self.addToken(TokenType.HASH, Literal{ .void = {} });
     }
 }
 
