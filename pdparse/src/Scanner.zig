@@ -75,6 +75,9 @@ pub fn isAtEnd(self: Self) bool {
 }
 
 fn peek(self: *Self) u8 {
+    if (self.isAtEnd()) {
+        return 0; 
+    }
     return self.source[self.current];
 }
 
@@ -111,7 +114,8 @@ pub fn scanToken(self: *Self) !void {
         ',' => try self.addToken(TokenType.COMMA, Literal{ .void = {} }),
         '.' => try self.addToken(TokenType.DOT, Literal{ .void = {} }),
         '-' => try self.addToken(TokenType.MINUS, Literal{ .void = {} }),
-        '+' => try self.addToken(TokenType.PLUS, Literal{ .void = {} }),
+        '+' => try self.addToken(if (self.match('~')) TokenType.PLUS_DSP
+                                 else TokenType.PLUS, Literal{ .void = {} }),
         '/' => try self.addToken(TokenType.SLASH, Literal{ .void = {} }),
         '*' => try self.addToken(TokenType.STAR, Literal{ .void = {} }),
         else => {

@@ -1,0 +1,13 @@
+#N canvas 827 239 527 327 12;
+#X floatatom 135 168 3 0 0 0 - - - 16;
+#X floatatom 232 181 5 0 0 0 - - - 0;
+#X obj 198 293 print;
+#X msg 91 272 wow;
+#X obj 353 146 bng 25 250 50 0 empty empty empty 17 7 0 10 #e4e4e4 #4d4d4d #373737;
+#X obj 267 252 + 10;
+#X obj 135 113 +~, f 5;
+#X connect 0 0 5 0;
+#X connect 1 0 5 1;
+#X connect 3 0 2 0;
+#X connect 4 0 5 0;
+#X connect 5 0 2 0;
