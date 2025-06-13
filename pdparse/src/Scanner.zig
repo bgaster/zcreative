@@ -2,11 +2,17 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const builtin = @import("builtin");
 
+const errorMsgs = @import("error.zig");
 const token = @import("token.zig");
 const Token = token.Token;
 const Literal = token.Literal;
 const TokenType = token.TokenType;
 
+
+pub const ScannerOptions = struct {
+    allocator: std.mem.Allocator,
+    diagnostic: ?*errorMsgs.Diagnostic = null,
+};
 
 pub const Scanner = @This();
 
@@ -26,15 +32,17 @@ source: []const u8,
 // string to TokenType (enum) map (e.g. "and" -> TokenType.AND)
 keyword_map: std.StringHashMap(TokenType),
 
+diagnostic: ?*errorMsgs.Diagnostic = null,
 
-pub fn init(allocator: Allocator, source: []const u8) !*Self {
+pub fn init(allocator: Allocator, source: []const u8, options: ScannerOptions) !*Self {
     const self = try allocator.create(Self);
     self.* = Self{
         .source = source, 
         .start = 0, 
         .current = 0, 
         .line = 1, 
-        .allocator = allocator, 
+        .allocator = options.allocator, 
+        .diagnostic = options.diagnostic, 
         .tokens = std.ArrayList(Token).init(allocator), 
         .keyword_map = token.initKeywords(allocator),
     };
@@ -69,6 +77,14 @@ fn skipWhitespace(self: *Self) void {
             return;
         }
     }
+}
+
+pub fn scanTokens(self: *Scanner) !std.ArrayList(Token) {
+    while (!self.isAtEnd()) {
+        self.start = self.current;
+        try self.scanToken();
+    }
+    return self.tokens;
 }
 
 pub fn isAtEnd(self: Self) bool {
@@ -120,8 +136,9 @@ pub fn scanToken(self: *Self) !void {
         '/' => try self.addToken(TokenType.SLASH, Literal{ .void = {} }),
         '*' => try self.addToken(TokenType.STAR, Literal{ .void = {} }),
         else => {
-            const msg: []const u8 = "Unexpected character.";
-            try self.addToken(TokenType.ERROR, Literal{ .str = msg });
+            if (self.diagnostic) |d|
+                d.* = .{ .msg = "Unexpected character.", .line = self.line };
+            return error.UnknownToken;
         }
     }
 }
@@ -207,7 +224,7 @@ pub fn addToken(self: *Scanner, token_type: TokenType, literal: Literal) !void {
         .lexeme = self.source[self.start..self.current] 
     };
     try self.tokens.append(t);
-    t.print();
+    // t.print();
 }
 
 fn advance(self: *Self) u8 {

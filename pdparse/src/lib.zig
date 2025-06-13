@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Scanner = @import("Scanner.zig");
+const errorMsgs = @import("error.zig");
 
 pub const Pd = struct {
 
@@ -19,16 +20,23 @@ pub const Pd = struct {
         };
         defer allocator.free(source);
 
-        var scanner = try Scanner.init(allocator, source);
+        var diag = errorMsgs.Diagnostic{}; 
+        var scanner = try Scanner.init(allocator, source, .{ 
+            .allocator = allocator, 
+            .diagnostic = &diag });
         defer scanner.deinit();
 
         const out = std.io.getStdOut().writer();
-
-        while (!scanner.isAtEnd()) {
-            try scanner.scanToken(); 
-            try out.print("\n", .{});
+        if (scanner.scanTokens()) |tokens| {
+            for (tokens.items) |token| {
+                token.print();
+                try out.print("\n", .{} );
+            }
         }
-
+        else |err| {
+            try diag.report(out, err);
+            return err;
+        }
     }
 
     pub fn scanPrompt(allocator: std.mem.Allocator) !void {
@@ -43,12 +51,20 @@ pub const Pd = struct {
 
             // If the input isn't empty or just a newline, process the input.
             if (source.len > 0 and !std.ascii.eqlIgnoreCase(source, " ")) {
-                var scanner = try Scanner.init(allocator, source);
+                var diag = errorMsgs.Diagnostic{}; 
+                var scanner = try Scanner.init(allocator, source, .{ 
+                    .allocator = allocator, 
+                    .diagnostic = &diag });
                 defer scanner.deinit();
 
-                while (!scanner.isAtEnd()) {
-                    try scanner.scanToken(); 
-                    try out.print("\n", .{});
+                if (scanner.scanTokens()) |tokens| {
+                    for (tokens.items) |token| {
+                        token.print();
+                        try out.print("\n", .{} );
+                    }
+                }
+                else |err| {
+                    try diag.report(out, err);
                 }
             }
         }
