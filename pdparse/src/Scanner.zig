@@ -136,9 +136,7 @@ pub fn scanToken(self: *Self) !void {
         '/' => try self.addToken(TokenType.SLASH, Literal{ .void = {} }),
         '*' => try self.addToken(TokenType.STAR, Literal{ .void = {} }),
         else => {
-            if (self.diagnostic) |d|
-                d.* = .{ .msg = "Unexpected character.", .line = self.line };
-            return error.UnknownToken;
+            return self.make_error("Unexpected character.", error.UnknownToken);
         }
     }
 }
@@ -242,4 +240,10 @@ fn isDigit(c: u8) bool {
 
 fn isAlphaNumeric(c: u8) bool {
     return isAlpha(c) or isDigit(c);
+}
+
+fn make_error(self: Self, msg: []const u8, _err: anytype) @TypeOf(_err) {
+    if (self.diagnostic) |d|
+        d.* = .{ .msg = msg, .line = self.line };
+    return _err;
 }
