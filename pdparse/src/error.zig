@@ -1,7 +1,11 @@
 const std = @import("std");
 
-pub const ScannerError = error{
+pub const Error = error{
     UnknownToken,
+    ParseIssue,
+    NoMatch,
+    InvalidLiteral,
+    InvalidArg,
 };
 
 /// Optional diagnostics used for reporting useful errors
@@ -13,7 +17,7 @@ pub const Diagnostic = struct {
 
     pub fn report(diag: Diagnostic, stream: anytype, err: anyerror) !void {
         switch (err) {
-            ScannerError.UnknownToken => try stream.print(
+            Error.UnknownToken => try stream.print(
                 "{s} (UnknownToken) at line {}\n",
                 .{ diag.msg, diag.line },
             ),
@@ -21,3 +25,4 @@ pub const Diagnostic = struct {
         }
     }
 };
+

@@ -39,12 +39,14 @@ pub const TokenType = enum {
     LOADBANG,
     CONNECT,
     CANVAS,
+    RESTORE,
     OR,
     XOR,
     NOT,
     IF,
     ELSE,
     PRINT,
+    MIDI_IN,
     MESSAGE,
     OBJ,
     FLOATATOM,
@@ -65,12 +67,14 @@ pub fn initKeywords(allocator: std.mem.Allocator) std.StringHashMap(TokenType) {
     keywords.put("msg", TokenType.MESSAGE) catch unreachable;
     keywords.put("connect", TokenType.CONNECT) catch unreachable;
     keywords.put("canvas", TokenType.CANVAS) catch unreachable;
+    keywords.put("restore", TokenType.RESTORE) catch unreachable;
     keywords.put("obj", TokenType.OBJ) catch unreachable;
     keywords.put("else", TokenType.ELSE) catch unreachable;
     keywords.put("if", TokenType.IF) catch unreachable;
     keywords.put("not", TokenType.NOT) catch unreachable;
     keywords.put("or", TokenType.OR) catch unreachable;
     keywords.put("print", TokenType.PRINT) catch unreachable;
+    keywords.put("midi.in", TokenType.MIDI_IN) catch unreachable;
     keywords.put("xor", TokenType.XOR) catch unreachable;
     return keywords;
 }

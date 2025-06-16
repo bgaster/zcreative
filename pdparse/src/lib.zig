@@ -1,6 +1,8 @@
 const std = @import("std");
 
 const Scanner = @import("Scanner.zig");
+const Parser = @import("Parser.zig");
+const Root = @import("parser.zig").Root;
 const errorMsgs = @import("error.zig");
 
 pub const Pd = struct {
@@ -32,10 +34,24 @@ pub const Pd = struct {
                 token.print();
                 try out.print("\n", .{} );
             }
+            var parser = try Parser.init(allocator, tokens, .{ 
+                .allocator = allocator, 
+                .diagnostic = &diag });
+            defer parser.deinit();
+
+            if (parser.parse_toplevel()) |root| {
+                defer root.deinit();
+
+                try root.print(out);
+            }
+            else |err| {
+                try diag.report(out, err);
+                return;
+            }
         }
         else |err| {
             try diag.report(out, err);
-            return err;
+            return;
         }
     }
 

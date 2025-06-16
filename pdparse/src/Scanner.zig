@@ -173,7 +173,7 @@ pub fn match(self: *Scanner, expected: u8) bool {
 }
 
 pub fn identifier(self: *Self) !void {
-    while (std.ascii.isAlphanumeric(self.peek())) {
+    while (std.ascii.isAlphanumeric(self.peek()) or self.peek() == '.') {
         _ = self.advance();
     }
 
