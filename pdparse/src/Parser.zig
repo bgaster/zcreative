@@ -13,6 +13,7 @@ const Root = patch.Root;
 const Patch = patch.Patch;
 const Layout = patch.Layout;
 const Node = patch.Node;
+const NodeType = patch.NodeType;
 const ArgType = patch.ArgType;
 const Arg = patch.Arg;
 const Connection = patch.Connection;
@@ -68,6 +69,16 @@ fn match_peek(self: *Self, tok: TokenType) bool {
         return true;
     }
     return false;
+}
+
+fn match_from_list(self: *Self, toks: []TokenType, ttypes:[]NodeType, otherwise: NodeType) errorMsgs.Error!NodeType {
+    for (toks, 0..) |t, i| {
+        if (self.match_peek(t)) {
+           _ = try self.match(t);
+            return ttypes[i];
+        }
+    }
+    return otherwise;
 }
 
 pub fn next_id(self: *Self) u32 {
@@ -190,10 +201,9 @@ pub fn parse_patch(self: *Self, p: *Patch, root: *Root) !void {
                 const y = try self.parse_int();
 
                 var node = Node.init(self.allocator);
-                if (self.match_peek(TokenType.PRINT)) {
-                    _ = try self.match(TokenType.PRINT);
-                    node.ttype = .print;
-                }
+                var toks: [2]TokenType = .{ TokenType.PRINT, TokenType.PLUS };
+                var ttypes: [2]NodeType = .{ .print, .plus };
+                node.ttype = try self.match_from_list(&toks, &ttypes, .undefined);
                 node.class = .control;
                 node.layout.x = x;
                 node.layout.y = y;
@@ -223,13 +233,16 @@ pub fn parse_patch(self: *Self, p: *Patch, root: *Root) !void {
 
                 _ = try self.match(TokenType.SEMICOLON);
             }
+            else if (self.match_peek(TokenType.RESTORE)) {
+                // root patch does not have a restore...
+                if (p.id == 0) {
+                    return errorMsgs.Error.UnexpectedRestore;
+                }
+                _ = try self.match(TokenType.RESTORE);
+
+                _ = try self.match(TokenType.SEMICOLON);
+            }
         }
-
-    }
-
-    // handle closing subpatches
-    if (p.id != 0) {
-
     }
 }
 

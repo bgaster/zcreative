@@ -210,9 +210,15 @@ pub const Node = struct {
             },
             .msg       => "msg",
             .bng       => "bng",
-            .plus      => "+",
-            .splus     => "+~",
-            .undefined => "undeifned",
+            .plus      => value: {
+                is_obj = true;
+                break :value "+";
+            },
+            .splus      => value: {
+                is_obj = true;
+                break :value "+~";
+            },
+            .undefined => "undefined",
         };
         if (is_obj) {
             try writer.print("obj {} {} {s}", .{ self.layout.x, self.layout.y, str });
