@@ -12,8 +12,16 @@ This repo is a playground for me to learn zig.
 - [ ] Dragging selected objects
 - [ ] Extend canvas to virtual size, with scroll bars
 - [X] PD to JSON command line tool
-- [ ] PD JSON to Ziggy tool
-- [ ] Load Ziggy PD patches
+- [ ] PD patch parser library
+  - [X] Lexer
+  - [ ] Parser
+     - [X] Parser failure handling
+     - [X] Patch data-structure
+     - [X] Basic parsing (support for canvas and subpatch)
+     - [X] Obj (msg) and Generic (print, +, etc) support
+     - [ ] UI objects (such floatatom, bng), which have additional UI fields
+     - [ ] Mop up missing objects and so on
+     - [ ] Externals
 - [ ] Toolbar support for loading files, burger menu, tools for switching between edit and run modes
 - [ ] Compile Visual editor patches to execution graph
 - [X] Add application struct, manages whole application
@@ -37,9 +45,36 @@ npm install
 
 ## PD patches 2 JSON 2 Ziggy
 
+You can use the following to explore PD patches in JSON, but this is not used elsewhere.
+
 ```bash
 ./extras/pd2json.sh <path-2-file>/some-pd-file.pd
 ```
+
+## GUI Experiments
+
+To explore [SDL2](https://www.libsdl.org/)---should move to SDL3 at somepoint---intergration, along with [NANOVG,](https://github.com/memononen/nanovg) 
+The GUI toolkit for what will be come our UX for Interactions<sup>n</sup>, at the moment it has 
+moveable widgets, supports mouse and keyboard events, but needs extending to support the actual visual widgets for
+**Interactions<sup>n</sup>**.
+
+You can try this out with the following command in the root directory:
+
+```bash
+zig build run
+```
+
+## PD Parser
+
+Currently I'm working on a simple parser for [Pure Data](https://puredata.info/) patches, which can be 
+found in the directory ```pdparse```. It is actually designed as a library, but it can be tested with the command:
+
+```bash
+zig build run -- patches/t3.pd
+```
+
+At the moment I need to add lots of PD functions (e.g. ```loadbang```), but all these are just extra 
+instances of ```obj``` node class, which is fully supported.
 
 ## Notes
 
