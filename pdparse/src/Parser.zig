@@ -15,6 +15,7 @@ const Layout = patch.Layout;
 const Node = patch.Node;
 const ArgType = patch.ArgType;
 const Arg = patch.Arg;
+const Connection = patch.Connection;
 
 pub const ParserOptions = struct {
     allocator: std.mem.Allocator,
@@ -93,9 +94,9 @@ pub fn parse_toplevel(self: *Self) (errorMsgs.Error || error{OutOfMemory})!Root 
 fn handle_toplevel(self: *Self, root: *Root) (errorMsgs.Error || error{OutOfMemory})!void {
     // consume patches
     while (!self.match_peek(TokenType.EOF)) {
-        var p = Patch.init(self.allocator, self.current_id, 0, 0, 0, 0);
+        const p = Patch.init(self.allocator, self.current_id, 0, 0, 0, 0);
         try root.patches.append(p);
-        try self.parse_patch(&p, root);
+        try self.parse_patch(&root.patches.items[root.patches.items.len-1], root);
     }
 }
 
@@ -149,7 +150,7 @@ pub fn parse_patch(self: *Self, p: *Patch, root: *Root) !void {
 
     _ = try self.match(TokenType.SEMICOLON);
 
-    // now nodes
+    // nodes and connectors and restore
     
     while (self.match_peek(TokenType.HASH_N) or self.match_peek(TokenType.HASH_X)) {
         // subpatch
@@ -165,24 +166,67 @@ pub fn parse_patch(self: *Self, p: *Patch, root: *Root) !void {
                 _ = try self.match(TokenType.MESSAGE);
                 const x = try self.parse_int();
                 const y = try self.parse_int();
-                const arg = try self.parse_arg();
 
-                _ = &x;
-                _ = &y;
-                _ = &arg;
+                var node = Node.init(self.allocator);
+                node.ttype = .msg;
+                node.class = .control;
+                node.layout.x = x;
+                node.layout.y = y;
+                try p.nodes.append(node);
+                var node_ptr = &p.nodes.items[p.nodes.items.len-1];
+
+                while (!self.match_peek(TokenType.SEMICOLON)) {
+                    // parse one or more args
+                    const arg = try self.parse_arg();
+                    try node_ptr.args.append(arg);
+                }
 
                 _ = try self.match(TokenType.SEMICOLON);
             }
             // object
             else if (self.match_peek(TokenType.OBJ)) {
+                _ = try self.match(TokenType.OBJ);
+                const x = try self.parse_int();
+                const y = try self.parse_int();
 
+                var node = Node.init(self.allocator);
+                if (self.match_peek(TokenType.PRINT)) {
+                    _ = try self.match(TokenType.PRINT);
+                    node.ttype = .print;
+                }
+                node.class = .control;
+                node.layout.x = x;
+                node.layout.y = y;
+                try p.nodes.append(node);
+                var node_ptr = &p.nodes.items[p.nodes.items.len-1];
+
+                while (!self.match_peek(TokenType.SEMICOLON)) {
+                    // parse one or more args
+                    const arg = try self.parse_arg();
+                    try node_ptr.args.append(arg);
+                }
+
+                _ = try self.match(TokenType.SEMICOLON);
+            }
+            else if (self.match_peek(TokenType.CONNECT)) {
+                _ = try self.match(TokenType.CONNECT);
+
+                const source_id = try self.parse_int();
+                const source_index = try self.parse_int();
+                const sink_id = try self.parse_int();
+                const sink_index = try self.parse_int();
+                
+                try p.connections.append(.{ 
+                    .source = .{ .id = source_id, .index = source_index },
+                    .sink   = .{ .id = sink_id, .index = sink_index },
+                });
+
+                _ = try self.match(TokenType.SEMICOLON);
             }
         }
 
     }
 
-    // now connectors
-    
     // handle closing subpatches
     if (p.id != 0) {
 

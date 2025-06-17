@@ -17,6 +17,7 @@ pub const Root = struct {
     }
 
     pub fn deinit(self: @This()) void {
+        for (self.patches.items) |patch| patch.deinit();
         self.patches.deinit();
     }
 
@@ -104,13 +105,22 @@ pub const Patch = struct {
     }
 
     pub fn deinit(self: @This()) void {
-        self.args.patches.deinit();
-        self.nodes.patches.deinit();
-        self.connections.patches.deinit();
+        self.args.deinit();
+
+        for (self.nodes.items) |node| node.deinit();
+        self.nodes.deinit();
+        self.connections.deinit();
     }
 
     pub fn print(self: @This(), writer: anytype) !void {
-        try writer.print("#N canvas {} {} {} {}", .{ self.layout.x, self.layout.y, self.layout.width, self.layout.height });
+        try writer.print("#N canvas {} {} {} {};\n", .{ self.layout.x, self.layout.y, self.layout.width, self.layout.height });
+        for (self.nodes.items) |node| {
+            try node.print(writer);
+        }
+
+        for (self.connections.items) |connection| {
+            try connection.print(writer);
+        }
     }
 };
 
@@ -128,6 +138,16 @@ pub const Arg = union(ArgType) {
     tsignal: f32,
     tstring: []const u8,
     tempty: void,
+
+    pub fn print(self: @This(), writer: anytype) !void {
+        switch (self) {
+            .tfloat => |f| try writer.print("{d:.2}", .{f}),
+            .tint   => |i| try writer.print("{}", .{i}),
+            .tsignal => |f| try writer.print("{d:.2}", .{f}),
+            .tstring => |s| try writer.print("{s}", .{s}),
+            .tempty => try writer.print("empty", .{}),
+        }
+    }
 };
 
 pub const NodeType = enum {
@@ -143,12 +163,15 @@ pub const NodeType = enum {
 
     // signals
     splus, 
+
+    undefined,
 };
 
 pub const NodeClass = enum {
     control, 
     generic,
     subpatch,
+    undefined,
 };
 
 pub const Node = struct {
@@ -157,6 +180,52 @@ pub const Node = struct {
     args: std.ArrayList(Arg),
     class: NodeClass,
     layout: Layout,
+
+    pub fn init(allocator: Allocator) @This() {
+        return .{
+            .id = 0,
+            .ttype = .undefined,
+            .args = std.ArrayList(Arg).init(allocator), 
+            .class = .undefined,
+            .layout = . {
+                .x = 0,
+                .y = 0,
+            },
+        };
+    }
+
+    pub fn deinit(self: @This()) void {
+        self.args.deinit();
+    }
+
+    pub fn print(self: @This(), writer: anytype) !void {
+        try writer.print("#X ", .{});
+        var is_obj = false;
+        const str = switch(self.ttype) {
+            .floatatom => "floatatom",
+            .intatom   => "intatom",
+            .print     => value: { 
+                is_obj = true; 
+                break :value "print"; 
+            },
+            .msg       => "msg",
+            .bng       => "bng",
+            .plus      => "+",
+            .splus     => "+~",
+            .undefined => "undeifned",
+        };
+        if (is_obj) {
+            try writer.print("obj {} {} {s}", .{ self.layout.x, self.layout.y, str });
+        }
+        else {
+            try writer.print("{s} {} {}", .{ str, self.layout.x, self.layout.y });
+        }
+        for (self.args.items) |arg| {
+            try writer.print(" ", .{});
+            try arg.print(writer);
+        }
+        try writer.print(";\n", .{});
+    }
 };
 
 pub const Port = struct {
@@ -167,4 +236,8 @@ pub const Port = struct {
 pub const Connection = struct {
     source: Port,
     sink: Port,
+
+    pub fn print(self: @This(), writer: anytype) !void {
+        try writer.print("#X connect {} {} {} {};\n", .{ self.source.id, self.source.index, self.sink.id, self.sink.index });
+    }
 };

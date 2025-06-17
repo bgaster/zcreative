@@ -5,6 +5,7 @@ pub const Error = error{
     ParseIssue,
     NoMatch,
     InvalidLiteral,
+    UnexpectedRestore,
     InvalidArg,
 };
 
