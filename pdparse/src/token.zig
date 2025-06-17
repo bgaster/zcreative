@@ -19,6 +19,7 @@ pub const TokenType = enum {
     MINUS_DSP,
     SEMICOLON,
     SLASH,
+    SLASH_DSP,
     STAR,
     STAR_DSP,
     HASH,

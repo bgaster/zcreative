@@ -157,12 +157,19 @@ pub const NodeType = enum {
     print,
     msg,
     bng,
+    loadbang,
 
     // non signals
     plus,
+    minus,
+    star,
+    slash,
 
     // signals
     splus, 
+    sminus, 
+    sstar, 
+    sslash, 
 
     undefined,
 };
@@ -214,9 +221,37 @@ pub const Node = struct {
                 is_obj = true;
                 break :value "+";
             },
+            .minus      => value: {
+                is_obj = true;
+                break :value "-";
+            },
+            .star      => value: {
+                is_obj = true;
+                break :value "*";
+            },
+            .slash      => value: {
+                is_obj = true;
+                break :value "/";
+            },
+            .loadbang      => value: {
+                is_obj = true;
+                break :value "loadbang";
+            },
             .splus      => value: {
                 is_obj = true;
                 break :value "+~";
+            },
+            .sminus     => value: {
+                is_obj = true;
+                break :value "-~";
+            },
+            .sstar     => value: {
+                is_obj = true;
+                break :value "*~";
+            },
+            .sslash     => value: {
+                is_obj = true;
+                break :value "/~";
             },
             .undefined => "undefined",
         };

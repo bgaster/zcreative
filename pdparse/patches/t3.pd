@@ -4,6 +4,9 @@
 #X obj 269 301 print hello;
 #X obj 497 251 + 2;
 #X obj 458 316 print;
+#X obj 569 147 loadbang;
+#X obj 271 410 -;
+#X obj 431 433 *;
 #X connect 0 0 2 0;
 #X connect 1 0 2 0;
 #X connect 3 0 4 0;

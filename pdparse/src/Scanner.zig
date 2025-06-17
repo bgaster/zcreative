@@ -130,11 +130,14 @@ pub fn scanToken(self: *Self) !void {
         ';' => try self.addToken(TokenType.SEMICOLON, Literal{ .void = {} }),
         ',' => try self.addToken(TokenType.COMMA, Literal{ .void = {} }),
         '.' => try self.addToken(TokenType.DOT, Literal{ .void = {} }),
-        '-' => try self.addToken(TokenType.MINUS, Literal{ .void = {} }),
+        '-' => try self.addToken(if (self.match('~')) TokenType.MINUS_DSP
+                                 else TokenType.MINUS, Literal{ .void = {} }),
         '+' => try self.addToken(if (self.match('~')) TokenType.PLUS_DSP
                                  else TokenType.PLUS, Literal{ .void = {} }),
-        '/' => try self.addToken(TokenType.SLASH, Literal{ .void = {} }),
-        '*' => try self.addToken(TokenType.STAR, Literal{ .void = {} }),
+        '/' => try self.addToken(if (self.match('~')) TokenType.SLASH_DSP
+                                 else TokenType.SLASH, Literal{ .void = {} }),
+        '*' => try self.addToken(if (self.match('~')) TokenType.STAR_DSP
+                                 else TokenType.STAR, Literal{ .void = {} }),
         else => {
             return self.make_error("Unexpected character.", error.UnknownToken);
         }

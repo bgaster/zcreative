@@ -201,8 +201,18 @@ pub fn parse_patch(self: *Self, p: *Patch, root: *Root) !void {
                 const y = try self.parse_int();
 
                 var node = Node.init(self.allocator);
-                var toks: [2]TokenType = .{ TokenType.PRINT, TokenType.PLUS };
-                var ttypes: [2]NodeType = .{ .print, .plus };
+                var toks = [_]TokenType{ 
+                    TokenType.PRINT, 
+                    TokenType.PLUS, TokenType.MINUS, TokenType.STAR, TokenType.SLASH, 
+                    TokenType.LOADBANG, 
+                    TokenType.PLUS_DSP, TokenType.MINUS_DSP, TokenType.STAR_DSP, TokenType.SLASH_DSP,
+                };
+                var ttypes  = [_]NodeType{ 
+                    .print, 
+                    .plus, .minus, .star, .slash, 
+                    .loadbang,
+                    .splus, .sminus, .sstar, .sslash,
+                };
                 node.ttype = try self.match_from_list(&toks, &ttypes, .undefined);
                 node.class = .control;
                 node.layout.x = x;
