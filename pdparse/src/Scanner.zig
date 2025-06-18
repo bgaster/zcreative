@@ -123,6 +123,9 @@ pub fn scanToken(self: *Self) !void {
     if (c == '#') {
         return self.hash();
     }
+    if (c == '\\' and self.match('$')) {
+        return self.dollar();
+    }
 
     switch(c) {
         '(' => try self.addToken(TokenType.LEFT_PAREN, Literal{ .void = {} }),
@@ -142,6 +145,12 @@ pub fn scanToken(self: *Self) !void {
             return self.make_error("Unexpected character.", error.UnknownToken);
         }
     }
+}
+
+fn dollar(self: *Scanner) !void {
+    try self.addToken(TokenType.DOLLAR, Literal{ .void = {} });
+    self.start = self.current;
+    return self.number();
 }
 
 fn hash(self: *Scanner) !void {

@@ -122,10 +122,10 @@ pub fn parse_int(self: *Self) errorMsgs.Error!u32 {
     };
 }
 
-fn to_arg(literal: Literal) Arg {
+fn to_arg(literal: Literal, is_dollar: bool) Arg {
     return switch (literal) {
         .void => .tempty,
-        .int => |value| .{ .tint = @as(i32, @intCast(value)) },
+        .int => |value| if (is_dollar) .{ .tdollar = @as(i32, @intCast(value)) } else .{ .tint = @as(i32, @intCast(value)) },
         .float => |value| .{ .tfloat = @as(f32, @floatCast(value)) },
         .str => |value|  .{ .tstring = value }
     };
@@ -134,18 +134,44 @@ fn to_arg(literal: Literal) Arg {
 pub fn parse_arg(self: *Self) errorMsgs.Error!Arg {
     if (self.match_peek(TokenType.INT)) {
         const l = try self.match(TokenType.INT);
-        return to_arg(l.literal);
+        return to_arg(l.literal, false);
     }
     else if (self.match_peek(TokenType.FLOAT)) {
         const f = try self.match(TokenType.FLOAT);
-        return to_arg(f.literal);
+        return to_arg(f.literal, false);
+    }
+    else if (self.match_peek(TokenType.DOLLAR)) {
+        _ = try self.match(TokenType.DOLLAR);
+        const l = try self.match(TokenType.INT);
+        return to_arg(l.literal, true);
     }
     else if (self.match_peek(TokenType.IDENTIFIER)) {
         const s = try self.match(TokenType.IDENTIFIER);
-        return to_arg(s.literal);
+        return to_arg(s.literal, false);
     }
 
     return errorMsgs.Error.InvalidArg; 
+}
+
+fn parse_msg_text(self: *Self, ttype: NodeType, p: *Patch) !void {
+    const x = try self.parse_int();
+    const y = try self.parse_int();
+
+    var node = Node.init(self.allocator);
+    node.ttype = ttype;
+    node.class = .control;
+    node.layout.x = x;
+    node.layout.y = y;
+    try p.nodes.append(node);
+    var node_ptr = &p.nodes.items[p.nodes.items.len-1];
+
+    while (!self.match_peek(TokenType.SEMICOLON)) {
+        // parse one or more args
+        const arg = try self.parse_arg();
+        try node_ptr.args.append(arg);
+    }
+
+    _ = try self.match(TokenType.SEMICOLON);
 }
 
 pub fn parse_patch(self: *Self, p: *Patch, root: *Root) !void {
@@ -175,24 +201,12 @@ pub fn parse_patch(self: *Self, p: *Patch, root: *Root) !void {
             // message
             if (self.match_peek(TokenType.MESSAGE)) {
                 _ = try self.match(TokenType.MESSAGE);
-                const x = try self.parse_int();
-                const y = try self.parse_int();
-
-                var node = Node.init(self.allocator);
-                node.ttype = .msg;
-                node.class = .control;
-                node.layout.x = x;
-                node.layout.y = y;
-                try p.nodes.append(node);
-                var node_ptr = &p.nodes.items[p.nodes.items.len-1];
-
-                while (!self.match_peek(TokenType.SEMICOLON)) {
-                    // parse one or more args
-                    const arg = try self.parse_arg();
-                    try node_ptr.args.append(arg);
-                }
-
-                _ = try self.match(TokenType.SEMICOLON);
+                try self.parse_msg_text(.msg, p);
+            }
+            // comment
+            else if (self.match_peek(TokenType.TEXT)) {
+                _ = try self.match(TokenType.TEXT);
+                try self.parse_msg_text(.text, p);
             }
             // object
             else if (self.match_peek(TokenType.OBJ)) {
@@ -204,13 +218,13 @@ pub fn parse_patch(self: *Self, p: *Patch, root: *Root) !void {
                 var toks = [_]TokenType{ 
                     TokenType.PRINT, 
                     TokenType.PLUS, TokenType.MINUS, TokenType.STAR, TokenType.SLASH, 
-                    TokenType.LOADBANG, 
+                    TokenType.LOADBANG, TokenType.RECEIVE, TokenType.SEND,
                     TokenType.PLUS_DSP, TokenType.MINUS_DSP, TokenType.STAR_DSP, TokenType.SLASH_DSP,
                 };
                 var ttypes  = [_]NodeType{ 
                     .print, 
                     .plus, .minus, .star, .slash, 
-                    .loadbang,
+                    .loadbang, .receive, .send,
                     .splus, .sminus, .sstar, .sslash,
                 };
                 node.ttype = try self.match_from_list(&toks, &ttypes, .undefined);

@@ -29,6 +29,7 @@ pub const TokenType = enum {
 
     // literals
     IDENTIFIER,
+    DOLLAR,
     TEXT,
     INT,
     FLOAT,
@@ -51,6 +52,8 @@ pub const TokenType = enum {
     MESSAGE,
     OBJ,
     FLOATATOM,
+    SEND,
+    RECEIVE,
     EMPTY,
 
     ERROR,
@@ -61,6 +64,8 @@ pub const TokenType = enum {
 pub fn initKeywords(allocator: std.mem.Allocator) std.StringHashMap(TokenType) {
     var keywords = std.StringHashMap(TokenType).init(allocator);
     keywords.put("and", TokenType.AND) catch unreachable;
+    keywords.put("r", TokenType.RECEIVE) catch unreachable;
+    keywords.put("s", TokenType.SEND) catch unreachable;
     keywords.put("bng", TokenType.BANG) catch unreachable;
     keywords.put("loadbang", TokenType.LOADBANG) catch unreachable;
     keywords.put("empty", TokenType.EMPTY) catch unreachable;
@@ -70,6 +75,7 @@ pub fn initKeywords(allocator: std.mem.Allocator) std.StringHashMap(TokenType) {
     keywords.put("canvas", TokenType.CANVAS) catch unreachable;
     keywords.put("restore", TokenType.RESTORE) catch unreachable;
     keywords.put("obj", TokenType.OBJ) catch unreachable;
+    keywords.put("text", TokenType.TEXT) catch unreachable;
     keywords.put("else", TokenType.ELSE) catch unreachable;
     keywords.put("if", TokenType.IF) catch unreachable;
     keywords.put("not", TokenType.NOT) catch unreachable;

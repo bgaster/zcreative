@@ -127,6 +127,7 @@ pub const Patch = struct {
 pub const ArgType = enum {
     tfloat,
     tint,
+    tdollar,
     tsignal,
     tstring,
     tempty,
@@ -135,6 +136,7 @@ pub const ArgType = enum {
 pub const Arg = union(ArgType) {
     tfloat: f32,
     tint: i32,
+    tdollar: i32,
     tsignal: f32,
     tstring: []const u8,
     tempty: void,
@@ -143,6 +145,7 @@ pub const Arg = union(ArgType) {
         switch (self) {
             .tfloat => |f| try writer.print("{d:.2}", .{f}),
             .tint   => |i| try writer.print("{}", .{i}),
+            .tdollar => |i| try writer.print("\\${}", .{i}),
             .tsignal => |f| try writer.print("{d:.2}", .{f}),
             .tstring => |s| try writer.print("{s}", .{s}),
             .tempty => try writer.print("empty", .{}),
@@ -158,6 +161,9 @@ pub const NodeType = enum {
     msg,
     bng,
     loadbang,
+    receive,
+    send,
+    text,
 
     // non signals
     plus,
@@ -208,6 +214,7 @@ pub const Node = struct {
     pub fn print(self: @This(), writer: anytype) !void {
         try writer.print("#X ", .{});
         var is_obj = false;
+        var is_text = false;
         const str = switch(self.ttype) {
             .floatatom => "floatatom",
             .intatom   => "intatom",
@@ -228,6 +235,18 @@ pub const Node = struct {
             .star      => value: {
                 is_obj = true;
                 break :value "*";
+            },
+            .receive      => value: {
+                is_obj = true;
+                break :value "r";
+            },
+            .send      => value: {
+                is_obj = true;
+                break :value "s";
+            },
+            .text      => value: {
+                is_text = true;
+                break :value "text";
             },
             .slash      => value: {
                 is_obj = true;

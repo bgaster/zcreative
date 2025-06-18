@@ -7,6 +7,9 @@
 #X obj 569 147 loadbang;
 #X obj 271 410 -;
 #X obj 431 433 *;
+#X obj 545 369 r \$1;
+#X text 626 444 hello this is a comment;
+#X obj 558 475 s \$1;
 #X connect 0 0 2 0;
 #X connect 1 0 2 0;
 #X connect 3 0 4 0;
