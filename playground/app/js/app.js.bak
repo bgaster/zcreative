@@ -1,0 +1,129 @@
+var webSocket;
+var userListUl;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const addSliderButton = document.getElementById('addSliderButton');
+    const slidersContainer = document.getElementById('slidersContainer');
+    let sliderCount = 0; // To keep track of the number of sliders for unique IDs
+    userListUl = document.getElementById('userList');
+
+    addSliderButton.addEventListener('click', () => {
+        sliderCount++; // Increment count for each new slider
+
+        // 1. Create a container for the slider and its value display
+        const sliderGroup = document.createElement('div');
+        sliderGroup.classList.add('slider-group');
+        sliderGroup.id = `sliderGroup-${sliderCount}`; // Unique ID for each group
+
+        // 2. Create the label
+        const label = document.createElement('label');
+        label.setAttribute('for', `rangeSlider-${sliderCount}`);
+        label.textContent = `Name ${sliderCount}:`;
+
+        // 3. Create the input range slider
+        const rangeSlider = document.createElement('input');
+        rangeSlider.setAttribute('type', 'range');
+        rangeSlider.setAttribute('min', '0');     // Minimum value
+        rangeSlider.setAttribute('max', '100');    // Maximum value
+        rangeSlider.setAttribute('value', '50');   // Initial value
+        rangeSlider.setAttribute('step', '1');     // Step increment
+        rangeSlider.id = `rangeSlider-${sliderCount}`; // Unique ID
+
+        // 4. Create the span to display the slider's value
+        const sliderValueDisplay = document.createElement('span');
+        sliderValueDisplay.classList.add('slider-value');
+        sliderValueDisplay.textContent = rangeSlider.value; // Display initial value
+
+        // 5. Create the Remove Button
+        const removeButton = document.createElement('button');
+        removeButton.textContent = 'Remove';
+        removeButton.classList.add('remove-slider-button'); // Add a class for styling
+
+        // 6. Add an event listener to the Remove Button
+        removeButton.addEventListener('click', () => {
+            // Traverse up the DOM to find the parent .slider-group and remove it
+            sliderGroup.remove(); // This is the simplest way to remove an element
+        });
+
+
+        // 7. Add an event listener to update the display when the slider value changes
+        rangeSlider.addEventListener('input', () => {
+            sliderValueDisplay.textContent = rangeSlider.value;
+        });
+
+        // 8. Append all created elements to the slider group
+        sliderGroup.appendChild(label);
+        sliderGroup.appendChild(rangeSlider);
+        sliderGroup.appendChild(sliderValueDisplay);
+        sliderGroup.appendChild(removeButton); // Append the remove button
+
+        // 9. Append the new slider group to the main container
+        slidersContainer.appendChild(sliderGroup);
+    });
+});
+
+function connectWS() {
+  var endpoint = document.getElementById("endpoint").value;
+  if (webSocket !== undefined) {
+      webSocket.close()
+  }
+
+  webSocket = new WebSocket(endpoint);
+
+  webSocket.onmessage = function(event) {
+    var len;
+    if (event.data.size === undefined) {
+        len = event.data.length
+    } else {
+        len = event.data.size
+    }
+
+    try {
+      const msg = JSON.parse(event.data);
+  
+      switch (msg.type) {
+        case "users":
+          const usernames = msg.data;
+          if (Array.isArray(msg.data)) {
+            updateUserList(usernames);
+          } else {
+              console.warn('Received non-array data from WebSocket:', usernames);
+              userListUl.innerHTML = '<li>Error: Invalid data received.</li>';
+          }
+        break;
+      }
+    } catch (error) {
+      console.error('Error parsing WebSocket message:', error);
+      userListUl.innerHTML = '<li>Error: Could not parse message.</li>';
+    }
+  }
+
+  webSocket.onopen = function(evt) {
+    console.log("onopen.");
+  }
+
+  webSocket.onclose = function(evt) {
+      console.log("onclose.");
+  }
+
+  webSocket.onerror = function(evt) {
+      console.log("Error!");
+  }
+
+  console.log('connect');
+}
+
+function updateUserList(usernames) {
+  userListUl.innerHTML = ''; // Clear previous list items
+  if (usernames.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = 'No active users.';
+      userListUl.appendChild(li);
+  } else {
+    usernames.forEach(username => {
+        const li = document.createElement('li');
+        li.textContent = username;
+        userListUl.appendChild(li);
+    });
+  }
+}

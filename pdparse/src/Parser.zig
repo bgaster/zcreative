@@ -174,6 +174,11 @@ fn parse_msg_text(self: *Self, ttype: NodeType, p: *Patch) !void {
     _ = try self.match(TokenType.SEMICOLON);
 }
 
+// return true, if current token is a UI object
+fn is_gui(self: *Self) bool {
+    return (self.match_peek(TokenType.BANG) or self.match_peek(TokenType.TGL));
+}
+
 pub fn parse_patch(self: *Self, p: *Patch, root: *Root) !void {
     _ = try self.match(TokenType.HASH_N);
     _ = try self.match(TokenType.CANVAS);
@@ -215,29 +220,34 @@ pub fn parse_patch(self: *Self, p: *Patch, root: *Root) !void {
                 const y = try self.parse_int();
 
                 var node = Node.init(self.allocator);
-                var toks = [_]TokenType{ 
-                    TokenType.PRINT, 
-                    TokenType.PLUS, TokenType.MINUS, TokenType.STAR, TokenType.SLASH, 
-                    TokenType.LOADBANG, TokenType.RECEIVE, TokenType.SEND,
-                    TokenType.PLUS_DSP, TokenType.MINUS_DSP, TokenType.STAR_DSP, TokenType.SLASH_DSP,
-                };
-                var ttypes  = [_]NodeType{ 
-                    .print, 
-                    .plus, .minus, .star, .slash, 
-                    .loadbang, .receive, .send,
-                    .splus, .sminus, .sstar, .sslash,
-                };
-                node.ttype = try self.match_from_list(&toks, &ttypes, .undefined);
                 node.class = .control;
                 node.layout.x = x;
                 node.layout.y = y;
-                try p.nodes.append(node);
-                var node_ptr = &p.nodes.items[p.nodes.items.len-1];
+                if (self.is_gui()) {
 
-                while (!self.match_peek(TokenType.SEMICOLON)) {
-                    // parse one or more args
-                    const arg = try self.parse_arg();
-                    try node_ptr.args.append(arg);
+                }
+                else {
+                    var toks = [_]TokenType{ 
+                        TokenType.PRINT, TokenType.TRIGGER,
+                        TokenType.PLUS, TokenType.MINUS, TokenType.STAR, TokenType.SLASH, 
+                        TokenType.LOADBANG, TokenType.RECEIVE, TokenType.SEND,
+                        TokenType.PLUS_DSP, TokenType.MINUS_DSP, TokenType.STAR_DSP, TokenType.SLASH_DSP,
+                    };
+                    var ttypes  = [_]NodeType{ 
+                        .print, .trigger,
+                        .plus, .minus, .star, .slash, 
+                        .loadbang, .receive, .send,
+                        .splus, .sminus, .sstar, .sslash,
+                    };
+                    node.ttype = try self.match_from_list(&toks, &ttypes, .undefined);
+                    try p.nodes.append(node);
+                    var node_ptr = &p.nodes.items[p.nodes.items.len-1];
+
+                    while (!self.match_peek(TokenType.SEMICOLON)) {
+                        // parse one or more args
+                        const arg = try self.parse_arg();
+                        try node_ptr.args.append(arg);
+                    }
                 }
 
                 _ = try self.match(TokenType.SEMICOLON);

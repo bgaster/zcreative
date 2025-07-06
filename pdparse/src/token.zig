@@ -38,6 +38,7 @@ pub const TokenType = enum {
     // Keywords.
     AND,
     BANG,
+    TGL,
     LOADBANG,
     CONNECT,
     CANVAS,
@@ -47,8 +48,10 @@ pub const TokenType = enum {
     NOT,
     IF,
     ELSE,
+    TRIGGER,
     PRINT,
     MIDI_IN,
+    MIDI_OUT,
     MESSAGE,
     OBJ,
     FLOATATOM,
@@ -67,6 +70,7 @@ pub fn initKeywords(allocator: std.mem.Allocator) std.StringHashMap(TokenType) {
     keywords.put("r", TokenType.RECEIVE) catch unreachable;
     keywords.put("s", TokenType.SEND) catch unreachable;
     keywords.put("bng", TokenType.BANG) catch unreachable;
+    keywords.put("tgl", TokenType.TGL) catch unreachable;
     keywords.put("loadbang", TokenType.LOADBANG) catch unreachable;
     keywords.put("empty", TokenType.EMPTY) catch unreachable;
     keywords.put("floatatom", TokenType.FLOATATOM) catch unreachable;
@@ -76,12 +80,15 @@ pub fn initKeywords(allocator: std.mem.Allocator) std.StringHashMap(TokenType) {
     keywords.put("restore", TokenType.RESTORE) catch unreachable;
     keywords.put("obj", TokenType.OBJ) catch unreachable;
     keywords.put("text", TokenType.TEXT) catch unreachable;
+    keywords.put("t", TokenType.TRIGGER) catch unreachable;
     keywords.put("else", TokenType.ELSE) catch unreachable;
+    keywords.put("trigger", TokenType.TRIGGER) catch unreachable;
     keywords.put("if", TokenType.IF) catch unreachable;
     keywords.put("not", TokenType.NOT) catch unreachable;
     keywords.put("or", TokenType.OR) catch unreachable;
     keywords.put("print", TokenType.PRINT) catch unreachable;
     keywords.put("midi.in", TokenType.MIDI_IN) catch unreachable;
+    keywords.put("midi.out", TokenType.MIDI_OUT) catch unreachable;
     keywords.put("xor", TokenType.XOR) catch unreachable;
     return keywords;
 }

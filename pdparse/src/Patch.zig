@@ -160,10 +160,12 @@ pub const NodeType = enum {
     print,
     msg,
     bng,
+    tgl,
     loadbang,
     receive,
     send,
     text,
+    trigger,
 
     // non signals
     plus,
@@ -224,6 +226,7 @@ pub const Node = struct {
             },
             .msg       => "msg",
             .bng       => "bng",
+            .tgl       => "tgl",
             .plus      => value: {
                 is_obj = true;
                 break :value "+";
@@ -247,6 +250,10 @@ pub const Node = struct {
             .text      => value: {
                 is_text = true;
                 break :value "text";
+            },
+            .trigger      => value: {
+                is_obj = true;
+                break :value "t";
             },
             .slash      => value: {
                 is_obj = true;

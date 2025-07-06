@@ -8,8 +8,11 @@
 #X obj 271 410 -;
 #X obj 431 433 *;
 #X obj 545 369 r \$1;
+#X obj 646 316 t b f b f b b;
 #X text 626 444 hello this is a comment;
 #X obj 558 475 s \$1;
+#X obj 290 511 bng 25 250 50 1 ss rs button 17 7 0 10 #e446ce #4d4d4d #373737;
+#X obj 374 537 tgl 25 1 ss rs empty 17 7 0 10 #e4e4e4 #4d4d4d #373737 0 1;
 #X connect 0 0 2 0;
 #X connect 1 0 2 0;
 #X connect 3 0 4 0;
