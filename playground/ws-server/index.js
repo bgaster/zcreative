@@ -13,7 +13,7 @@ const FRAME_DURATION_MS = 20;    // How often to send a new chunk (e.g., 20ms)
 const SAMPLES_PER_FRAME = (SAMPLE_RATE / 1000) * FRAME_DURATION_MS; // 960 samples for 20ms at 48kHz
 
 // --- Sine Wave Parameters ---
-const FREQUENCY = 440; // Hz (A4 note)
+let FREQUENCY = 440; // Hz (A4 note)
 const AMPLITUDE = 0.5; // Max 1.0 (for Float32Array)
 
 let timerId = null;
@@ -37,10 +37,11 @@ var nextUserId = 0;
 
 const controls = [
   { type: 1, id: 0, name: "slider1", values: [ 0, 100, 50, 1 ] },
-  { type: 1, id: 1, name: "slider2", values: [ 0, 100, 23, 1 ] }
+  { type: 1, id: 1, name: "slider2", values: [ 0, 100, 23, 1 ] },
+  { type: 1, id: 2, name: "frequency", values: [ 240, 600, 440, 1 ] }
 ];
 
-var nextSliderId = 2;
+var nextSliderId = 3;
 
 function broadcast_users() {
   const users = [];
@@ -81,18 +82,24 @@ function set_controller(ws, type, id, values) {
   if (type === 0) {
     // slider
     if (id < nextSliderId) {
-      controls[id].values[2] = values[0];
-      // send updated slider to all other clients
-      wsClients.forEach(client => { 
-        if (client !== undefined && client.ws.id !== ws.id) { 
-          const msg = {
-            type: "control",
-            header: id,
-            values: values,
-          };
-          client.ws.send(JSON.stringify(msg)); 
+      const parsed = Number.parseInt(values[0], 10);
+      if (!Number.isNaN(parsed)) {
+        controls[id].values[2] = parsed;
+        if (id === 2) {
+          FREQUENCY = parsed;
         }
-      });
+        // send updated slider to all other clients
+        wsClients.forEach(client => { 
+          if (client !== undefined && client.ws.id !== ws.id) { 
+            const msg = {
+              type: "control",
+              header: id,
+              values: values,
+            };
+            client.ws.send(JSON.stringify(msg)); 
+          }
+        });
+      }
     }
   }
 }

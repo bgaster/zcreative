@@ -82,6 +82,18 @@ I needed to have glad.[c/h] as source in here for nanovg-zig
 to work. This was needed so nanovg can create a GL context and 
 create a window. This had to be added to ```build.zig``` and so on.
 
+## Playground
+
+The folder *playground* is a dumping ground for exploring whatever. In particular, in the directories
+
+```bash
+ws-server
+app
+```
+
+Is a JS webserver that is looking at the notion of colabrative environment for distrabuted control interfaces 
+and a centralised audio server. The *ws-server* is a Bun (Nodejs compatiable).
+
 ## License
 
 Licensed under any of
