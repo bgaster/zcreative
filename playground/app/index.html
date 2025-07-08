@@ -14,15 +14,6 @@
     <li>Waiting for users...</li>
   </ul>
 
-  <!-- <br> -->
-  <!-- <hr class="dashed"> -->
-  <!-- <br> -->
-  <!-- <button id="addSliderButton">Add New Slider</button> -->
-  <!---->
-  <!-- <div id="slidersContainer"> -->
-  <!-- </div> -->
-
-
   <br>
   <hr class="dashed">
   <br>
@@ -40,7 +31,16 @@
 
   <!-- <button onclick="connectWS()">Connect</button> -->
 
-  <button id="connectButton">Connect</button>
+  <button id="connectButton">Connect control</button>
+
+  <br>
+  <hr class="dashed">
+  <br>
+
+  <p>Connection Status: <span id="connectionStatus" class="disconnected">Disconnected</span></p>
+  <p>Audio Status: <span id="audioStatus">Idle</span></p>
+
+  <button id="togglePlayButton">Connect & Play Audio</button>
 
   <script src="js/app.js"></script>
 

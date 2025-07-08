@@ -57,3 +57,38 @@ hr.dashed {
   border-top: 3px dashed #bbb;
 }
 
+#connectionStatus, #audioStatus {
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.connected {
+    color: white;
+    background-color: #28a745; /* Green */
+}
+
+.disconnected {
+    color: white;
+    background-color: #dc3545; /* Red */
+}
+
+#togglePlayButton {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+#togglePlayButton:hover {
+    background-color: #0056b3;
+}
+
+#togglePlayButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}

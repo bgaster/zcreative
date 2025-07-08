@@ -1,3 +1,7 @@
+bun.lock
+.DS_Store
 zig-out
 .zig-cache
 node_modules
+app-ffmpeg
+ws-ffmpeg
