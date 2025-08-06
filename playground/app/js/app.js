@@ -106,12 +106,20 @@ async function initAudio() {
       channelCount: CHANNELS // Set preferred channel count
   });
   console.log(`AudioContext created with sample rate: ${audioContext.sampleRate}`);
+  await audioContext.resume();
 
   // AudioContext often starts in 'suspended' state; resume it with user gesture
   if (audioContext.state === 'suspended') {
       await audioContext.resume();
       console.log('Initial Audio Context Resume triggered.');
   }
+
+  if (!audioContext.audioWorklet) {
+    console.warn("AudioWorklet is not supported on this browser. Falling back to a different method if needed.");
+    // You could call a fallback function here.
+    // return;
+  }
+
 
   try {
     // Add the AudioWorkletProcessor module
@@ -175,12 +183,15 @@ function connectWebSocket() {
     console.log('WebSocket already open.');
     return;
   }
+  var endpoint_audio = document.getElementById("endpoint_audio").value;
 
-  ws = new WebSocket(websocketAddress);
+
+  ws = new WebSocket(endpoint_audio);
+  // ws = new WebSocket(websocketAddress);
   ws.binaryType = 'arraybuffer'; // Crucial for receiving binary data
 
   ws.onopen = async () => {
-    console.log('WebSocket connected.');
+    console.log('WebSocket connected.\n');
     updateStatus('Connected', 'Waiting for audio...');
     togglePlayButton.textContent = 'Stop Audio';
     togglePlayButton.disabled = false;

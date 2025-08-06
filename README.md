@@ -84,7 +84,19 @@ create a window. This had to be added to ```build.zig``` and so on.
 
 ## Playground
 
-The folder *playground* is a dumping ground for exploring whatever. In particular, in the directories
+The folder *playground* is a dumping ground for exploring whatever. 
+
+I'm developing all of this suff on MacOS with the plan to move it to rewritten in zig and run on a Linux server. This means it is
+likely to not work on Windows!!
+
+You need to have installed:
+
+```bash
+python3
+bun
+```
+
+In the directories
 
 ```bash
 ws-server
@@ -93,6 +105,23 @@ app
 
 Is a JS webserver that is looking at the notion of colabrative environment for distrabuted control interfaces 
 and a centralised audio server. The *ws-server* is a Bun (Nodejs compatiable).
+
+It turns out that js apps that use audioWorklets that are served from a 'remote' host must be via *https*, took me some messing to
+discover why my original http server was not working. This additionally means that any websockets accessed by the server must also be 
+secure. In the end it makes more sense to be doing it over https and so the main issue that is left is the certificate. To avoid having
+to be connected to the internet and so on I've just created local certificate with the command:
+
+```bash
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout key.pem -out cert.pem
+```
+
+Once the system is ported to zig this will be moved to a trusted site to sign the certificate.
+
+To start the *app* just change into *app* folder and run the command:
+
+```bash
+./runserver.sh
+```
 
 ## License
 

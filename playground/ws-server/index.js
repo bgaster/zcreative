@@ -1,6 +1,20 @@
 import { WebSocketServer } from 'ws';
+import { createServer } from 'https';
+import { readFileSync } from 'fs';
 
-const wss = new WebSocketServer({ port: 8080 });
+const serverHttp = createServer({
+  cert: readFileSync('../app/cert.pem'),
+  key: readFileSync('../app/key.pem')
+});
+
+const wss = new WebSocketServer({ 
+  server: serverHttp
+  // port: 8080 
+});
+
+serverHttp.listen(8080);
+
+const dgram = require('dgram');
 
 //-----------------------------------------------------------------------------
 // audio globals and so on.
@@ -140,10 +154,42 @@ wss.on('connection', function connection(ws) {
 console.log("control server! localhost:8080");
 
 //-----------------------------------------------------------------------------
+// udp controller listener
+//-----------------------------------------------------------------------------
+
+// const udp_addr = "192.168.1.18";
+const udp_addr = "192.168.0.100";
+const udp_port = 3333;
+
+const serverUDP = dgram.createSocket('udp4');
+
+serverUDP.on('message',function(msg,info) {
+  console.log('Data received from client : ' + msg.toString());
+  console.log('Received %d bytes from %s:%d\n',msg.length, info.address, info.port);
+});
+
+serverUDP.bind(udp_port, udp_addr);
+
+console.log("udp server! 192.168.1.18:3333");
+
+
+//-----------------------------------------------------------------------------
 // audio stuff
 //-----------------------------------------------------------------------------
 
-const wss_audio = new WebSocketServer({ port: 6080 });
+const serverHttpAudio = createServer({
+  cert: readFileSync('../app/cert.pem'),
+  key: readFileSync('../app/key.pem')
+});
+
+const wss_audio = new WebSocketServer({ 
+  server: serverHttpAudio
+  // port: 8080 
+});
+
+serverHttpAudio.listen(6080);
+
+// const wss_audio = new WebSocketServer({ port: 6080 });
 console.log('audio server! localhost:6080');
 
 // Generates a chunk of 32-bit floating-point PCM sine wave data (Float32Array)
