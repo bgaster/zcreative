@@ -1,0 +1,94 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h1 {
+    color: #0056b3;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.slider-group {
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap; /* Allows elements to wrap on smaller screens */
+}
+
+.slider-group label {
+    font-weight: bold;
+    min-width: 80px; /* Give some consistent width for labels */
+}
+
+.slider-group input[type="range"] {
+    flex-grow: 1; /* Allows the slider to take available space */
+    width: auto; /* Override default width */
+}
+
+.slider-value {
+    font-weight: bold;
+    color: #28a745;
+    min-width: 40px; /* Ensure space for value display */
+    text-align: right;
+}
+
+hr.dashed {
+  border-top: 3px dashed #bbb;
+}
+
+#connectionStatus, #audioStatus {
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.connected {
+    color: white;
+    background-color: #28a745; /* Green */
+}
+
+.disconnected {
+    color: white;
+    background-color: #dc3545; /* Red */
+}
+
+#togglePlayButton {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+#togglePlayButton:hover {
+    background-color: #0056b3;
+}
+
+#togglePlayButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}

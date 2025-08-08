@@ -91,6 +91,19 @@ likely to not work on Windows!!
 
 You need to have installed:
 
+```c++
+int main() {
+  return 0;
+}
+```
+
+
+```zig
+fn foo() u32 {
+
+}
+```
+
 ```bash
 python3
 bun
