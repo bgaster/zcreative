@@ -17,12 +17,12 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
         print(post_data.decode("utf-8"))
 
 # server_address = ("192.168.1.18", 5000)
-server_address = ("192.168.0.100", 5000)
+server_address = ("164.11.68.179", 5000)
 httpd = http.server.HTTPServer(server_address, MyHandler)
 
 print('%s' % (server_address,))
 
-context = get_ssl_context("cert.pem", "key.pem")
+context = get_ssl_context("../cert/cert.pem", "../cert/key.pem")
 httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
 
 httpd.serve_forever()

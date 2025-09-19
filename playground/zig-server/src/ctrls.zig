@@ -50,7 +50,7 @@ fn help_and_exit(filename: []const u8, err: anyerror) void {
 }
 
 pub fn start(allocator: Allocator) void {
-    GlobalContextManager = ContextManager.init(allocator, "controllers", "user-");
+    GlobalContextManager = ContextManager.init(allocator, "zcreative-server", "user-");
     defer GlobalContextManager.deinit();
     allocator_g = allocator;
 
@@ -136,14 +136,15 @@ const Context = struct {
     settings: WebsocketHandler.WebSocketSettings,
 };
 
-const ContextList = std.ArrayList(*Context);
+const ContextMap  = std.AutoHashMap(u32, *Context);
 
 const ContextManager = struct {
     allocator: std.mem.Allocator,
     channel: []const u8,
     usernamePrefix: []const u8,
     lock: std.Thread.Mutex = .{},
-    contexts: ContextList = undefined,
+    contexts: ContextMap = undefined,
+    nextUserId: u32,
 
     pub fn init(
         allocator: std.mem.Allocator,
@@ -154,15 +155,22 @@ const ContextManager = struct {
             .allocator = allocator,
             .channel = channelName,
             .usernamePrefix = usernamePrefix,
-            .contexts = ContextList.init(allocator),
+            .contexts = ContextMap.init(allocator,),
+            .nextUserId = 0,
         };
     }
 
     pub fn deinit(self: *ContextManager) void {
-        for (self.contexts.items) |ctx| {
-            self.allocator.free(ctx.userName);
+        var iterator = self.contexts.valueIterator();
+        while (iterator.next()) |ctx| {
+            self.allocator.free(ctx.*.userName);
         }
         self.contexts.deinit();
+    }
+
+    fn nextId(self: *ContextManager) u32 {
+        defer { self.nextUserId = self.nextUserId + 1; }
+        return self.nextUserId;
     }
 
     pub fn newContext(self: *ContextManager) !*Context {
@@ -170,10 +178,11 @@ const ContextManager = struct {
         defer self.lock.unlock();
 
         const ctx = try self.allocator.create(Context);
+        const id = self.nextId();
         const userName = try std.fmt.allocPrint(
             self.allocator,
             "{s}{d}",
-            .{ self.usernamePrefix, self.contexts.items.len },
+            .{ self.usernamePrefix, id },
         );
         ctx.* = .{
             .userName = userName,
@@ -192,11 +201,16 @@ const ContextManager = struct {
                 .context = ctx,
             },
         };
-        try self.contexts.append(ctx);
+        try self.contexts.put(id, ctx);
         return ctx;
     }
 
-    pub fn getContexts(self: *ContextManager) ContextList {
+    pub fn removeContext(self: *ContextManager, user: []const u8) void {
+        _ = user;
+        _ = self;
+    }
+
+    pub fn getContexts(self: *ContextManager) ContextMap {
         return self.contexts;
     }
 };
@@ -205,6 +219,40 @@ const ContextManager = struct {
 // Websockets
 //----------------------------------------------------------------------------------------------------------
 
+fn broadcast_names(context: ?*Context) !void {
+    var message: std.ArrayList(u8) = .empty;
+
+    // TODO: do we need to pre-allocate compacity.
+
+    const mgw = message.writer(allocator_g);
+    var json = try JSON.init(mgw);
+    defer json.deinit();
+
+    try json.add_tagged_string("type", "users", mgw);
+    try json.begin_array("data", mgw);
+    const map = GlobalContextManager.getContexts();
+
+    var iterator = map.valueIterator();
+
+    while (iterator.next()) |entry| {
+        try json.add_array_element(entry.*.userName, mgw);
+    }
+
+    try json.end_array(mgw);
+    try json.end(mgw);
+    std.debug.print("{s}\n", .{message.items});
+
+    iterator = map.valueIterator();
+    while (iterator.next()) |entry| {
+        WebsocketHandler.publish(.{ .channel = entry.*.channel, .message = message.items});
+    }
+
+    if (context != null) {
+
+    }
+    // WebsocketHandler.publish(.{ .channel = context.channel, .message = message.items});
+}
+
 //
 // Websocket Callbacks
 //
@@ -212,56 +260,28 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) !void {
     if (context) |ctx| {
         _ = try WebsocketHandler.subscribe(handle, &ctx.subscribeArgs);
 
-        var message = std.ArrayList(u8).init(allocator_g);
-        const mgw = message.writer();
-        var json = try JSON.init(mgw);
-        defer json.deinit();
-
-        try json.add_tagged_string("type", "users", mgw);
-        try json.begin_array("data", mgw);
-        const list = GlobalContextManager.getContexts();
-        for (list.items) |item| {
-            try json.add_array_element(item.userName, mgw);
-        }
-        try json.end_array(mgw);
-        try json.end(mgw);
-        std.debug.print("{s}\n", .{message.items});
-
-        // var message = std.ArrayList(u8).init(allocator_g);
-        // const msgw = message.writer();
-
-        // _ = try msgw.write("{ \"type\" : \"users\", ");
-        // _ = try msgw.write("\"data\" : [");
-        // // const list = GlobalContextManager.getContexts();
-        // for (list.items, 0..) |item, i| {
-        //     _ = try msgw.write("\"");
-        //     _ = try msgw.write(item.userName);
-        //     _ = try msgw.write("\"");
-        //     if (i != list.items.len-1) {
-        //         _ = try msgw.write(",");
-        //     }
-        // }
-        // _ = try msgw.write("] }");
+        try broadcast_names(ctx);
 
         // send notification to all others
-        WebsocketHandler.publish(.{ .channel = ctx.channel, .message = message.items});
-        std.log.info("new websocket opened: {s}", .{message.items});
+        std.log.info("new websocket opened", .{});
     }
 }
 
 fn on_close_websocket(context: ?*Context, uuid: isize) !void {
     _ = uuid;
     if (context) |ctx| {
-        // say goodbye
         var buf: [128]u8 = undefined;
         const message = try std.fmt.bufPrint(
             &buf,
-            "{s} left the chat.",
+            "{s} left.",
             .{ctx.userName},
         );
 
-        // send notification to all others
-        WebsocketHandler.publish(.{ .channel = ctx.channel, .message = message });
+        GlobalContextManager.removeContext(ctx.userName);
+
+        // send update user list to all others
+        try broadcast_names(null);
+
         std.log.info("websocket closed: {s}", .{message});
     }
 }

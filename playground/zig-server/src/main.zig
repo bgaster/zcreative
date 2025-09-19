@@ -7,12 +7,17 @@ const std = @import("std");
 const ctrls = @import("ctrls.zig");
 
 pub fn main() !void {
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    var stdout_buffer: [1024]u8 = undefined;
+
+    const stdout_file = std.fs.File.stdout();
+    var stdout_writer = stdout_file.writer(&stdout_buffer);
+    const stdout = &stdout_writer.interface;
+
+    // var bw = std.io.bufferedWriter(stdout_file);
+    // const stdout = bw.writer();
 
     try stdout.print("zcreative server\n", .{});
-    try bw.flush(); 
+    try stdout.flush();
 
     var gpa = std.heap.GeneralPurposeAllocator(.{
         .thread_safe = true,
@@ -27,5 +32,5 @@ pub fn main() !void {
     // const thread = try std.Thread.spawn(spawnConfig, ctrls.start, .{allocator});
     // thread.join();
 
-    try bw.flush(); // Don't forget to flush!
+    try stdout.flush();
 }

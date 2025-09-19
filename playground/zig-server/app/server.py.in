@@ -22,7 +22,7 @@ httpd = http.server.HTTPServer(server_address, MyHandler)
 
 print('%s' % (server_address,))
 
-context = get_ssl_context("cert.pem", "key.pem")
+context = get_ssl_context("../cert/cert.pem", "../cert/key.pem")
 httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
 
 httpd.serve_forever()
