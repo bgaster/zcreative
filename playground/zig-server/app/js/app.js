@@ -4,6 +4,7 @@
 let webSocket;
 let userListUl;
 let connectButton;
+let closeButton;
 let addSliderButton;
 let slidersContainer;
 let controlsContainer;
@@ -32,6 +33,7 @@ const CHANNELS = 1;
 document.addEventListener('DOMContentLoaded', () => {
     // control global init
     connectButton = document.getElementById('connectButton');
+    closeButton = document.getElementById('closeButton');
     addSliderButton = document.getElementById('addSliderButton');
     slidersContainer = document.getElementById('slidersContainer');
     controlsContainer = document.getElementById('controlsContainer');
@@ -47,6 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
     connectButton.addEventListener('click', () => {
       connectWS();
     });
+
+    closeButton.addEventListener('click', () => {
+      closeWS();
+    })
 
   
     // audio stuff (this is receive only, the server generates all audio)
@@ -250,6 +256,14 @@ function disconnectWebSocket() {
 }
 
 // control stuff
+//
+
+function closeWS() {
+  if (webSocket !== undefined) {
+      webSocket.close()
+  }
+  userListUl.innerHTML = '';  
+}
 
 function connectWS() {
   var endpoint = document.getElementById("endpoint").value;
@@ -320,13 +334,15 @@ function connectWS() {
     }
   }
 
+
+
   webSocket.onopen = function(evt) {
     // request current list of controls
     webSocket.send(JSON.stringify({ type: "get_controls" }));
   }
 
   webSocket.onclose = function(evt) {
-      console.log("onclose.");
+    console.log("onclose.");
   }
 
   webSocket.onerror = function(evt) {

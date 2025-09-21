@@ -65,6 +65,23 @@ pub const JSON = struct {
         self.array_count = self.array_count + 1;
     }
 
+    pub fn add_array_element_t(self: *JSON, comptime T: type, tag: ?[]const u8, value: T, w: std.ArrayList(u8).Writer) !void {
+        if (self.array_count > 0) {
+            _ = try w.write(", ");
+        }
+        const max_len = 20;
+        var buf: [max_len]u8 = undefined;
+
+        if (tag) |t| {
+            _ = try w.write("\"");
+            _ = try w.write(t);
+            _ = try w.write("\": ");
+        }
+        const numAsString = try std.fmt.bufPrint(&buf, "{any}", .{value});
+        _ = try w.write(numAsString);
+        self.array_count = self.array_count + 1;
+    }
+
     pub fn end_array(self: *JSON, w: std.ArrayList(u8).Writer) !void {
         _ = try w.write("]");
         self.array_count = 0;
@@ -277,6 +294,35 @@ pub const JsonObject = struct {
         }
         std.debug.print("}}\n", .{});
     }
+
+    pub fn toString(self: *JsonObject, w: std.ArrayList(u8).Writer) !void {
+        // const buflen = 2048; 
+        // var buf: [buflen]u8 = undefined;
+        _ = try w.write("{");
+        // const message = try std.fmt.bufPrint(
+        //     &buf,
+        //     format_string,
+        //     .{ ctx.userName, trimmed_message },
+        // );
+        // _ = try w.write("\"");
+        for (self.map.keys(), 0..) |key, index| {
+            _ = try w.write("\"");
+            _ = try w.write(key);
+            _ = try w.write("\"");
+            _ = try w.write(" : ");
+
+            const value = self.map.get(key);
+            if (value) |v| {
+                try v.toString(w);
+            }
+
+            if (index < self.map.count() - 1) {
+                _ = try w.write(", ");
+            }
+        }
+
+        _ = try w.write("}");
+    }
 };
 
 /// Abstraction for JSON arrays
@@ -354,9 +400,22 @@ pub const JsonArray = struct {
         }
         std.debug.print("]\n", .{});
     }
+
+    pub fn toString(self: *JsonArray, w: std.ArrayList(u8).Writer) !void {
+        _ = try w.write("[");
+
+        for (self.array.items, 0..) |item, index| {
+            try item.toString(w);
+            if (index < self.len() - 1) {
+                _ = try w.write(", ");
+            }
+        }
+
+        _ = try w.write("]");
+    }
 };
 
-const JsonValueTypeUnion = union { integer: i64, float: f64, array: *JsonArray, string: []const u8, object: *JsonObject, boolean: bool };
+const JsonValueTypeUnion = union(enum) { integer: i64, float: f64, array: *JsonArray, string: []const u8, object: *JsonObject, boolean: bool };
 
 /// Abstraction for all JSON values
 pub const JsonValue = struct {
@@ -463,12 +522,28 @@ pub const JsonValue = struct {
 
     /// Returns the string value or null
     pub fn stringOrNull(self: *JsonValue) ?[]const u8 {
-        return if (self.value == null or self.type == JsonType.string) self.value.string else null;
+        if (self.type == JsonType.string) {
+            if (self.value) |value| {
+                switch(value) {
+                    .string => |str| return str,
+                    else    => return null,
+                }
+            }
+        }
+        return null;
     }
 
     /// Returns the object value or null
     pub fn objectOrNull(self: *JsonValue) ?*JsonObject {
-        return if (self.value == null or self.type == JsonType.object) self.value.object else null;
+        if (self.type == JsonType.object) {
+            if (self.value) |value| {
+                switch(value) {
+                    .object => |obj| return obj,
+                    else    => return null,
+                }
+            }
+        } 
+        return null;
     }
 
     /// Returns the integer value or null
@@ -502,6 +577,52 @@ pub const JsonValue = struct {
             JsonType.object => self.value.?.object.print(indent),
             JsonType.array => self.value.?.array.print(indent),
         }
+    }
+
+    pub fn toString(self: *JsonValue, w: std.ArrayList(u8).Writer) (std.fmt.BufPrintError || std.mem.Allocator.Error)!void {
+        const buflen = 2048; 
+        var buf: [buflen]u8 = undefined;
+        try switch (self.type) {
+            JsonType.integer => {
+                const str = try std.fmt.bufPrint(
+                    &buf,
+                    "{d}",
+                    .{ self.integer() },
+                );
+                _ = try w.write(str);
+            }, 
+            JsonType.float => {
+                const str = try std.fmt.bufPrint(
+                    &buf,
+                    "{d}",
+                    .{ self.float() },
+                );
+                _ = try w.write(str);
+            },
+            JsonType.string => {
+                const str = try std.fmt.bufPrint(
+                    &buf,
+                    "{s}",
+                    .{ self.string() },
+                );
+                _ = try w.write("\"");
+                _ = try w.write(str);
+                _ = try w.write("\"");
+            }, 
+            JsonType.boolean => {
+                if (self.boolean()) {
+                    _ = try w.write("true");
+                }
+                else {
+                    _ = try w.write("false");
+                }
+            },
+            JsonType.nil => { 
+                _ = try w.write("null");
+            },
+            JsonType.object => self.value.?.object.toString(w),
+            JsonType.array => self.value.?.array.toString(w),
+        };
     }
 };
 
@@ -547,8 +668,8 @@ pub fn parseFile(file: std.fs.File, allocator: Allocator) !*JsonValue {
 
 /// Parse a JSON5 string using the provided allocator
 pub fn parseJson5(jsonString: []const u8, allocator: Allocator) !*JsonValue {
-    const buffer = bufferFromText(jsonString);
-    return parseValue(buffer, CONFIG_JSON5, allocator);
+    var buffer = bufferFromText(jsonString);
+    return parseValue(&buffer, CONFIG_JSON5, allocator);
 }
 
 fn parseJson5Buffer(buffer: *Buffer, allocator: Allocator) !*JsonValue {
@@ -909,6 +1030,8 @@ fn parseNumber(buffer: *Buffer, config: ParserConfig, allocator: Allocator) Pars
     }
 
     // TODO: Figure out why this block couldn't be in the switch below; kept complaining about not being able to
+    //
+    // return jsonArray;
     //  initialize the union
     var hexBuffer: []const u8 = undefined;
     if (encodingType == NumberEncoding.hex) {
@@ -1190,4 +1313,93 @@ fn expectParseNumberToParseNumber(number: anytype, text: []const u8, config: Par
 
     const Check = std.heap.Check;
     try std.testing.expect(gpa.deinit() == Check.ok);
+}
+
+
+pub fn createObject(allocator: Allocator) !*JsonObject {
+    const jsonObject = try allocator.create(JsonObject);
+    errdefer jsonObject.deinit(allocator);
+
+    jsonObject.map = std.StringArrayHashMap(*JsonValue).init(allocator);
+
+    return jsonObject;
+}
+
+pub fn beginArray(allocator: Allocator) !*JsonArray {
+    const jsonArray = try allocator.create(JsonArray);
+    errdefer jsonArray.deinit(allocator);
+
+    jsonArray.array = .empty;
+
+    return jsonArray;
+}
+
+pub fn arrayAppend(allocator: Allocator, jsonArray: *JsonArray, value: *JsonValue) !void {
+    try jsonArray.array.append(allocator, value);
+}
+
+pub fn endArray(allocator: Allocator, jsonArray: *JsonArray) !*JsonValue {
+    const jsonValue = try allocator.create(JsonValue);
+    errdefer jsonValue.deinit(allocator);
+
+    jsonValue.type = JsonType.array;
+    jsonValue.value = .{ .array = jsonArray };
+
+    return jsonValue;
+}
+
+pub fn createString(allocator: Allocator, str: [] const u8) !*JsonValue {
+    const jsonValue = try allocator.create(JsonValue);
+    errdefer jsonValue.deinit(allocator);
+
+    const copy = try allocator.alloc(u8, str.len);
+    errdefer allocator.free(copy);
+
+    for (str, 0..) |char, index| {
+        copy[index] = char;
+    }
+
+    jsonValue.type = JsonType.string;
+    jsonValue.value = .{ .string = copy };
+    jsonValue.stringPtr = copy;
+
+    return jsonValue;
+}
+
+pub fn createInteger(allocator: Allocator, num: i64) !*JsonValue {
+    const jsonValue = try allocator.create(JsonValue);
+    errdefer jsonValue.deinit(allocator);
+
+    jsonValue.type = JsonType.integer;
+    jsonValue.value = .{ .integer = num };
+
+    return jsonValue;
+}
+
+pub fn objectPut(allocator: Allocator, jsonObject: *JsonObject, key: []const u8, value: *JsonValue) !void {
+        const keyString = try allocator.alloc(u8, key.len);
+        errdefer allocator.free(keyString);
+
+        std.mem.copyForwards(u8, keyString, key);
+        try jsonObject.map.put(keyString, value);
+}
+
+pub fn createFromArray(allocator: Allocator, jsonArray: *JsonArray) !*JsonValue {
+    const jsonValue = try allocator.create(JsonValue);
+    errdefer jsonValue.deinit(allocator);
+
+    jsonValue.type = JsonType.array;
+    jsonValue.value = .{ .array = jsonArray };
+
+    return jsonValue;
+}
+
+pub fn createFromObject(allocator: Allocator, jsonObject: *JsonObject) !*JsonValue {
+    const jsonValue = try allocator.create(JsonValue);
+    errdefer jsonValue.deinit(allocator);
+
+    jsonValue.type = JsonType.object;
+    jsonValue.value = .{ .object = jsonObject };
+
+    return jsonValue;
 }

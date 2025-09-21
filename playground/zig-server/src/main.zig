@@ -28,7 +28,7 @@ pub fn main() !void {
     //     .allocator = allocator,
     // };
 
-    ctrls.start(allocator);
+    try ctrls.start(allocator);
     // const thread = try std.Thread.spawn(spawnConfig, ctrls.start, .{allocator});
     // thread.join();
 
