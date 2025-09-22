@@ -91,19 +91,6 @@ likely to not work on Windows!!
 
 You need to have installed:
 
-```c++
-int main() {
-  return 0;
-}
-```
-
-
-```zig
-fn foo() u32 {
-
-}
-```
-
 ```bash
 python3
 bun
@@ -136,6 +123,13 @@ To start the *app* just change into *app* folder and run the command:
 ./runserver.sh
 ```
 
+In the directory is the initial zig server version.
+
+It requires to be built with OpenSSL and in release mode, using the following command:
+
+```bash
+ZAP_USE_OPENSSL=true zig build -Doptimize=ReleaseFast run
+```
 ## License
 
 Licensed under any of

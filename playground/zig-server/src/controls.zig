@@ -80,12 +80,12 @@ pub const Controls = struct {
         switch (T) {
             Slider => {
                 if (index < self.sliders.items.len) {
-                    return self.sliders[index];
+                    return self.sliders.items[index];
                 }
             },
             Button => {
                 if (index < self.buttons.items.len) {
-                    return self.buttons[index];
+                    return self.buttons.items[index];
                 }
             },
             else => {
@@ -95,17 +95,17 @@ pub const Controls = struct {
         return null;
     }
 
-    pub fn updateSlider(self: *Self, index: usize, value: i64) bool {
+    pub fn update_slider(self: *Self, index: usize, value: i64) bool {
         if (index < self.sliders.items.len) {
-            self.sliders[index].value = value;
+            self.sliders.items[index].value = value;
             return true;
         }
         return false;
     }
 
-    pub fn updateButton(self: *Self, index: usize, value: bool) bool {
+    pub fn update_button(self: *Self, index: usize, value: bool) bool {
         if (index < self.buttons.items.len) {
-            self.buttons[index].value = value;
+            self.buttons.items[index].value = value;
             return true;
         }
         return false;

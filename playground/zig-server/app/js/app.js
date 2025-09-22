@@ -419,9 +419,9 @@ function updateControls(controls) {
           sliderValueDisplay.textContent = rangeSlider.value;
           const msg = {
             type: 'control',
-            header: 0,
+            header: 1,
             uid: control.id,
-            values: [rangeSlider.value]
+            values: [parseInt(rangeSlider.value)]
           };
           webSocket.send(JSON.stringify(msg));
         });

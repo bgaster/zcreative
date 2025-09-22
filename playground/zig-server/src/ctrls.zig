@@ -245,6 +245,33 @@ const ContextManager = struct {
 // Websockets
 //----------------------------------------------------------------------------------------------------------
 
+fn set_slider(context: *Context, id: i64, value: i64) !void {
+    _ = context;
+
+    _ = GlobalControls.update_slider(@intCast(id), value);
+
+    // var message: std.ArrayList(u8) = .empty;
+    // const mgw = message.writer(allocator_g);
+
+    const buflen = 1024; 
+    var buf: [buflen]u8 = undefined;
+    const message = try std.fmt.bufPrint(
+        &buf,
+        "{c} \"type\": \"control\", \"header\": {d}, \"values\": [{d}] {c}",
+        .{'{', id, value, '}' },
+    );
+
+    std.log.info("sent control {s}\n", .{message});
+
+
+    const map = GlobalContextManager.getContexts();
+    var iterator = map.valueIterator();
+    while (iterator.next()) |entry| {
+        // TODO: don't send to updater
+        WebsocketHandler.publish(.{ .channel = entry.*.channel, .message = message, .is_json = true});
+    }
+}
+
 fn send_controls(context: *Context) !void {
     const obj = try jsonP.createObject(allocator_g); 
     defer obj.deinit(allocator_g);
@@ -282,7 +309,6 @@ fn send_controls(context: *Context) !void {
     try jsonP.objectPut(allocator_g, obj, "data", try jsonP.createFromArray(allocator_g, jsonArray));
 
     try obj.toString(mgw);
-    // std.debug.print("{s}\n", .{message.items});
     std.log.info("sent controls {s}\n", .{message.items});
 
     WebsocketHandler.publish(.{ .channel = context.channel, .message = message.items, .is_json = true});
@@ -310,7 +336,6 @@ fn broadcast_names(context: ?*Context) !void {
     try jsonP.objectPut(allocator_g, obj, "data", try jsonP.endArray(allocator_g, jsonArray));
     try obj.toString(mgw);
 
-    // std.debug.print("{s}\n", .{message.items});
     std.log.info("sent users {s}\n", .{message.items});
 
     iterator = map.valueIterator();
@@ -391,7 +416,16 @@ fn handle_websocket_message(
                             const values = obj.get("values");
 
                             if (header.type == .integer and uid.type == .integer and values.type == .array) {
+                                // handle sliders
+                                if (header.integer() == controls.SLIDER_TYPE) {
+                                    if (values.array().getOrNull(0)) |value| {
+                                        if (value.type == .integer) {
+                                            try set_slider(ctx, uid.integer(), value.integer());
+                                        }
+                                    }
+                                }
 
+                                // TODO: handle other controller types, e.g. buttons
                             }
                         }
                     }
