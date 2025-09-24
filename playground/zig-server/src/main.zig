@@ -4,6 +4,8 @@
 
 const std = @import("std");
 
+const clap = @import("clap");
+
 const ctrls = @import("ctrls.zig");
 
 pub fn main() !void {
@@ -24,11 +26,42 @@ pub fn main() !void {
     }){};
     const allocator = gpa.allocator();
 
+    const params = comptime clap.parseParamsComptime(
+        \\-h, --help     Display this help and exit.
+        \\--ip <str>     IP address for websocket server.
+        \\<str>
+        \\
+    );
+
+    var diag = clap.Diagnostic{};
+    var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
+        .diagnostic = &diag,
+        .allocator = allocator,
+    }) catch |err| {
+        // Report useful error and exit.
+        try diag.reportToFile(.stderr(), err);
+        return err;
+    };
+    defer res.deinit();
+
+    var ip: ?[]const u8 = null;
+    var file: ?[]const u8 = null;
+
+    if (res.args.help != 0) {
+        std.debug.print("--help\n", .{});
+    }
+    if (res.args.ip) |s| {
+        ip = s;
+    }
+    if (res.positionals[0]) |f| {
+        file = f;
+    }
+
     // const spawnConfig = std.Thread.SpawnConfig{
     //     .allocator = allocator,
     // };
 
-    try ctrls.start(allocator);
+    try ctrls.start(allocator, ip, file);
     // const thread = try std.Thread.spawn(spawnConfig, ctrls.start, .{allocator});
     // thread.join();
 

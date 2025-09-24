@@ -59,7 +59,10 @@ fn help_and_exit(filename: []const u8, err: anyerror) void {
     std.process.exit(1);
 }
 
-pub fn start(allocator: Allocator) !void {
+pub fn start(allocator: Allocator, ip: ?[]const u8, control_json: ?[]const u8) !void {
+
+    _ = control_json;
+
     GlobalContextManager = ContextManager.init(allocator, "zcreative-server", "user-");
     defer GlobalContextManager.deinit();
 
@@ -79,10 +82,10 @@ pub fn start(allocator: Allocator) !void {
     });
 
     _ = try GlobalControls.add(controls.Slider {
-        .name = "slider2",
+        .name = "gain",
         .lower = 0,
-        .upper = 100,
-        .value = 23,
+        .upper = 127,
+        .value = 50,
         .increment = 1,
     });
     
@@ -101,7 +104,8 @@ pub fn start(allocator: Allocator) !void {
 
     const tls = zap.Tls.init(.{
         // .server_name = "192.168.1.18:8080",
-        .server_name = address_port,
+        .server_name = if (ip) |addressp| try Allocator.dupeZ(allocator, u8, addressp) else address_port,
+        // .server_name = address_port,
         .public_certificate_file = CERT_FILE,
         .private_key_file = KEY_FILE,
     }) catch return;
