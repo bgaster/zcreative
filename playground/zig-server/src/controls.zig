@@ -2,6 +2,9 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 
+const osc = @import("osc_message.zig");
+const OscSend = @import("osc_send.zig").OscSend;
+
 // pub const ControllerType = enum {
 //     Slider,
 //     Button,
@@ -41,19 +44,23 @@ pub const Controls = struct {
     sliders: std.ArrayList(Slider) = undefined,
     buttons: std.ArrayList(Button) = undefined,
 
+    osc: OscSend = undefined,
+
     const Self = @This();
 
-    pub fn init(allocator: Allocator) Self {
+    pub fn init(allocator: Allocator, oscsend: OscSend) Self {
         return .{
             .allocator = allocator,
             .sliders = .empty,
             .buttons = .empty,
+            .osc = oscsend,
         };
     }
 
     pub fn deinit(self: *Self) void {
         self.sliders.deinit(self.allocator);
         self.buttons.deinit(self.allocator);
+        self.osc.close();
     }
 
     pub fn add(self: *Self, control: anytype) !usize {
@@ -98,6 +105,23 @@ pub const Controls = struct {
     pub fn update_slider(self: *Self, index: usize, value: i64) bool {
         if (index < self.sliders.items.len) {
             self.sliders.items[index].value = value;
+            return true;
+        }
+        return false;
+    }
+
+    pub fn send(self: *Self, prefix: []const u8, index: usize) !bool {
+        if (index < self.sliders.items.len) {
+            const buflen = 256; 
+            var buf: [buflen]u8 = undefined;
+            const address = try std.fmt.bufPrint(
+                &buf,
+                // "/control/slider/{s}",
+                "/{s}/{s}",
+                .{ prefix, self.sliders.items[index].name},
+            );
+            const msg = osc.OscMessage.init(address, &[_]osc.OscArgument{.{ .i = @intCast(self.sliders.items[index].value) }});
+            try self.osc.send(msg);
             return true;
         }
         return false;

@@ -40,6 +40,10 @@
             .url = "git+https://github.com/zigzap/zap?ref=v0.11.0#66c5dc42c781bbb8a9100afda3c7e69ee96eddf3",
             .hash = "zap-0.10.6-GoeB8xCEJABLgoiZjWZMMT5TsoZ5OO2EZe6j24RTUYEH",
         },
+        .network = .{
+            .url = "git+https://github.com/ikskuh/zig-network#7947237eec317d9458897f82089f343a05450c2b",
+            .hash = "network-0.1.0-Pm-Agl8xAQBmkwohveGOfTk4zQnuqDs0Ptfbms4KP5Ce",
+        },
     },
     .paths = .{
         "build.zig",

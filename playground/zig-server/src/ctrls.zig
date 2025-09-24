@@ -12,13 +12,18 @@ const JSON = @import("json.zig").JSON;
 const jsonP = @import("json.zig");
 
 const controls = @import("controls.zig");
+const osc = @import("osc_message.zig");
+const OscSend = @import("osc_send.zig").OscSend;
 
 //----------------------------------------------------------------------------------------------------------
 // Globals variables...
 //----------------------------------------------------------------------------------------------------------
 
-const address: []const u8 = "192.168.1.18:8080";
+// const address: []const u8 = "127.0.0.1";
+const address: []const u8 = "192.168.1.18";
+const address_port = "192.168.1.18:8080";
 const port: usize = 8080;
+const port_udp = 30338;
 
 var GlobalContextManager: ContextManager = undefined;
 
@@ -58,7 +63,11 @@ pub fn start(allocator: Allocator) !void {
     GlobalContextManager = ContextManager.init(allocator, "zcreative-server", "user-");
     defer GlobalContextManager.deinit();
 
-    GlobalControls = controls.Controls.init(allocator);
+    // setup out going OSC socket
+    var oscsend = OscSend.init(allocator);
+    try oscsend.connect(false, "127.0.0.1", port_udp);
+
+    GlobalControls = controls.Controls.init(allocator, oscsend);
     defer GlobalControls.deinit();
 
     _ = try GlobalControls.add(controls.Slider {
@@ -91,7 +100,8 @@ pub fn start(allocator: Allocator) !void {
     };
 
     const tls = zap.Tls.init(.{
-        .server_name = "192.168.1.18:8080",
+        // .server_name = "192.168.1.18:8080",
+        .server_name = address_port,
         .public_certificate_file = CERT_FILE,
         .private_key_file = KEY_FILE,
     }) catch return;
@@ -248,7 +258,11 @@ const ContextManager = struct {
 fn set_slider(context: *Context, id: i64, value: i64) !void {
     _ = context;
 
-    _ = GlobalControls.update_slider(@intCast(id), value);
+    const uid: usize = @intCast(id);
+    _ = GlobalControls.update_slider(uid, value);
+
+    // now send the update via OSC
+    _ = try GlobalControls.send("test_osc", uid);
 
     // var message: std.ArrayList(u8) = .empty;
     // const mgw = message.writer(allocator_g);

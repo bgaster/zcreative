@@ -70,8 +70,13 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .openssl = true, // set to true to enable TLS support
     });
-
     exe.root_module.addImport("zap", zap.module("zap"));
+
+    const network = b.dependency("network", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    exe.root_module.addImport("network", network.module("network"));
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
