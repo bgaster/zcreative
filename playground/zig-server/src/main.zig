@@ -8,6 +8,25 @@ const clap = @import("clap");
 
 const ctrls = @import("ctrls.zig");
 
+const json = @import("json.zig");
+
+fn readFile(file_path: []const u8, allocator: std.mem.Allocator) ![]u8 {
+    // Open the file for reading
+    const file = try std.fs.cwd().openFile(file_path, .{ .mode = .read_only });
+    defer file.close();
+
+    // Get the file size
+    const file_size = try file.getEndPos();
+
+    // Allocate buffer for the file content
+    const buffer = try allocator.alloc(u8, file_size);
+
+    // Read the file into the buffer
+    _ = try file.readAll(buffer);
+
+    return buffer;
+}
+
 pub fn main() !void {
     var stdout_buffer: [1024]u8 = undefined;
 
@@ -44,24 +63,28 @@ pub fn main() !void {
     };
     defer res.deinit();
 
-    var ip: ?[]const u8 = null;
-    var file: ?[]const u8 = null;
+    // var ip: ?[]const u8 = null;
+    // var controls: ?*json.JsonValue = null;
 
     if (res.args.help != 0) {
         std.debug.print("--help\n", .{});
     }
-    if (res.args.ip) |s| {
-        ip = s;
-    }
-    if (res.positionals[0]) |f| {
-        file = f;
+    // see if ip address 
+    const ip: []const u8 = if (res.args.ip) |s| s else "192.168.1.18:8080";
+
+    // get control input
+    if (res.positionals[0]) |file_path| {
+        // Reading from the file
+        const file = try readFile(file_path, allocator);
+        const controls = try json.parse(file, allocator);
+        allocator.free(file);
+        try ctrls.start(allocator, ip, controls);
     }
 
     // const spawnConfig = std.Thread.SpawnConfig{
     //     .allocator = allocator,
     // };
 
-    try ctrls.start(allocator, ip, file);
     // const thread = try std.Thread.spawn(spawnConfig, ctrls.start, .{allocator});
     // thread.join();
 

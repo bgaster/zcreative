@@ -1,0 +1,20 @@
+{
+  "controls" : {
+    "sliders" : [
+      {
+        "name" : "slider1",
+        "lower" : 0,
+        "upper" : 100,
+        "value" : 50,
+        "increment" : 1
+      },
+      {
+        "name" : "gain",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1
+      }
+    ]
+  }
+}

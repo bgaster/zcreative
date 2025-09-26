@@ -548,17 +548,41 @@ pub const JsonValue = struct {
 
     /// Returns the integer value or null
     pub fn integerOrNull(self: *JsonValue) ?i64 {
-        return if (self.value == null or self.type == JsonType.integer) self.value.integer else null;
+        if (self.type == JsonType.integer) {
+            if (self.value) |value| {
+                switch(value) {
+                    .integer => |i| return i,
+                    else    => return null,
+                }
+            }
+        } 
+        return null;
     }
 
     /// Returns the float value or null
     pub fn floatOrNull(self: *JsonValue) ?f64 {
-        return if (self.value == null or self.type == JsonType.float) self.value.float else null;
+        if (self.type == JsonType.float) {
+            if (self.value) |value| {
+                switch(value) {
+                    .float => |f| return f,
+                    else    => return null,
+                }
+            }
+        } 
+        return null;
     }
 
     /// Returns the array value or null
     pub fn arrayOrNull(self: *JsonValue) ?*JsonArray {
-        return if (self.value == null or self.type == JsonType.array) self.value.array else null;
+        if (self.type == JsonType.array) {
+            if (self.value) |value| {
+                switch(value) {
+                    .array => |a| return a,
+                    else    => return null,
+                }
+            }
+        } 
+        return null;
     }
 
     /// Returns the boolean value or null
@@ -1369,7 +1393,6 @@ pub fn createString(allocator: Allocator, str: [] const u8) !*JsonValue {
 pub fn createInteger(allocator: Allocator, num: i64) !*JsonValue {
     const jsonValue = try allocator.create(JsonValue);
     errdefer jsonValue.deinit(allocator);
-
     jsonValue.type = JsonType.integer;
     jsonValue.value = .{ .integer = num };
 

@@ -5,6 +5,8 @@ const Allocator = std.mem.Allocator;
 const osc = @import("osc_message.zig");
 const OscSend = @import("osc_send.zig").OscSend;
 
+const json = @import("json.zig");
+
 // pub const ControllerType = enum {
 //     Slider,
 //     Button,
@@ -48,7 +50,11 @@ pub const Controls = struct {
 
     const Self = @This();
 
-    pub fn init(allocator: Allocator, oscsend: OscSend) Self {
+    pub fn init(allocator: Allocator, udp_address: []const u8, udp_port: u16) !Self {
+        // setup out going OSC socket
+        var oscsend = OscSend.init(allocator);
+        try oscsend.connect(false, udp_address, udp_port);
+
         return .{
             .allocator = allocator,
             .sliders = .empty,
@@ -61,6 +67,43 @@ pub const Controls = struct {
         self.sliders.deinit(self.allocator);
         self.buttons.deinit(self.allocator);
         self.osc.close();
+    }
+
+    pub fn add_from_json(self: *Self, controls_json: *json.JsonValue) !void {
+        if (controls_json.objectOrNull()) |obj| {
+            if (obj.getOrNull("controls")) |cs| {
+                if (cs.objectOrNull()) |os| {
+                    if (os.getOrNull("sliders")) |ss| {
+                        if (ss.arrayOrNull()) |sa| {
+                            for (sa.items()) |s| {
+                                if (s.objectOrNull()) |so| {
+                                    if (so.contains("name") and so.contains("lower") and so.contains("upper") and 
+                                        so.contains("value") and so.contains("increment")) {
+
+                                        const name = so.get("name");
+                                        const lower = so.get("lower");
+                                        const upper = so.get("upper");
+                                        const value = so.get("value");
+                                        const increment = so.get("increment");
+
+                                        if (name.type == .string and lower.type == .integer and upper.type == .integer
+                                            and value.type == .integer and increment.type == .integer) {
+                                            _ = try self.add(Slider{
+                                                .name = try Allocator.dupe(self.allocator, u8, name.string()),
+                                                .lower = lower.integer(),
+                                                .upper = upper.integer(),
+                                                .value = value.integer(),
+                                                .increment = increment.integer(),
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     pub fn add(self: *Self, control: anytype) !usize {

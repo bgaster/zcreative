@@ -59,35 +59,34 @@ fn help_and_exit(filename: []const u8, err: anyerror) void {
     std.process.exit(1);
 }
 
-pub fn start(allocator: Allocator, ip: ?[]const u8, control_json: ?[]const u8) !void {
 
-    _ = control_json;
+pub fn start(allocator: Allocator, ip: []const u8, controls_json: *jsonP.JsonValue) !void {
 
     GlobalContextManager = ContextManager.init(allocator, "zcreative-server", "user-");
     defer GlobalContextManager.deinit();
 
-    // setup out going OSC socket
-    var oscsend = OscSend.init(allocator);
-    try oscsend.connect(false, "127.0.0.1", port_udp);
-
-    GlobalControls = controls.Controls.init(allocator, oscsend);
+    GlobalControls = try controls.Controls.init(allocator, "127.0.0.1", port_udp);
     defer GlobalControls.deinit();
 
-    _ = try GlobalControls.add(controls.Slider {
-        .name = "slider1",
-        .lower = 0,
-        .upper = 100,
-        .value = 50,
-        .increment = 1,
-    });
+    // setup controls
+    try GlobalControls.add_from_json(controls_json);
+    controls_json.deinit(allocator);
 
-    _ = try GlobalControls.add(controls.Slider {
-        .name = "gain",
-        .lower = 0,
-        .upper = 127,
-        .value = 50,
-        .increment = 1,
-    });
+    // _ = try GlobalControls.add(controls.Slider {
+    //     .name = "slider1",
+    //     .lower = 0,
+    //     .upper = 100,
+    //     .value = 50,
+    //     .increment = 1,
+    // });
+    //
+    // _ = try GlobalControls.add(controls.Slider {
+    //     .name = "gain",
+    //     .lower = 0,
+    //     .upper = 127,
+    //     .value = 50,
+    //     .increment = 1,
+    // });
     
     allocator_g = allocator;
 
@@ -103,9 +102,7 @@ pub fn start(allocator: Allocator, ip: ?[]const u8, control_json: ?[]const u8) !
     };
 
     const tls = zap.Tls.init(.{
-        // .server_name = "192.168.1.18:8080",
-        .server_name = if (ip) |addressp| try Allocator.dupeZ(allocator, u8, addressp) else address_port,
-        // .server_name = address_port,
+        .server_name = try Allocator.dupeZ(allocator, u8, ip),
         .public_certificate_file = CERT_FILE,
         .private_key_file = KEY_FILE,
     }) catch return;
