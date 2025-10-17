@@ -22,6 +22,7 @@ pub const Slider = struct {
     upper: i64,
     value: i64,
     increment: i64,
+    osc_prefix: []const u8,
 };
 
 pub const Button = struct {
@@ -78,13 +79,14 @@ pub const Controls = struct {
                             for (sa.items()) |s| {
                                 if (s.objectOrNull()) |so| {
                                     if (so.contains("name") and so.contains("lower") and so.contains("upper") and 
-                                        so.contains("value") and so.contains("increment")) {
+                                        so.contains("value") and so.contains("increment") and so.contains("osc_prefix")) {
 
                                         const name = so.get("name");
                                         const lower = so.get("lower");
                                         const upper = so.get("upper");
                                         const value = so.get("value");
                                         const increment = so.get("increment");
+                                        const osc_prefix = so.get("osc_prefix");
 
                                         if (name.type == .string and lower.type == .integer and upper.type == .integer
                                             and value.type == .integer and increment.type == .integer) {
@@ -94,6 +96,7 @@ pub const Controls = struct {
                                                 .upper = upper.integer(),
                                                 .value = value.integer(),
                                                 .increment = increment.integer(),
+                                                .osc_prefix = try Allocator.dupe(self.allocator, u8, osc_prefix.string()),
                                             });
                                         }
                                     }
@@ -153,7 +156,7 @@ pub const Controls = struct {
         return false;
     }
 
-    pub fn send(self: *Self, prefix: []const u8, index: usize) !bool {
+    pub fn send(self: *Self, index: usize) !bool {
         if (index < self.sliders.items.len) {
             const buflen = 256; 
             var buf: [buflen]u8 = undefined;
@@ -161,7 +164,7 @@ pub const Controls = struct {
                 &buf,
                 // "/control/slider/{s}",
                 "/{s}/{s}",
-                .{ prefix, self.sliders.items[index].name},
+                .{ self.sliders.items[index].osc_prefix, self.sliders.items[index].name},
             );
             const msg = osc.OscMessage.init(address, &[_]osc.OscArgument{.{ .i = @intCast(self.sliders.items[index].value) }});
             try self.osc.send(msg);

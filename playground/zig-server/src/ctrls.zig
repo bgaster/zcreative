@@ -15,6 +15,8 @@ const controls = @import("controls.zig");
 const osc = @import("osc_message.zig");
 const OscSend = @import("osc_send.zig").OscSend;
 
+const MPMCQ = @import("mpmcq").MPMCQ;
+
 //----------------------------------------------------------------------------------------------------------
 // Globals variables...
 //----------------------------------------------------------------------------------------------------------
@@ -72,22 +74,6 @@ pub fn start(allocator: Allocator, ip: []const u8, controls_json: *jsonP.JsonVal
     try GlobalControls.add_from_json(controls_json);
     controls_json.deinit(allocator);
 
-    // _ = try GlobalControls.add(controls.Slider {
-    //     .name = "slider1",
-    //     .lower = 0,
-    //     .upper = 100,
-    //     .value = 50,
-    //     .increment = 1,
-    // });
-    //
-    // _ = try GlobalControls.add(controls.Slider {
-    //     .name = "gain",
-    //     .lower = 0,
-    //     .upper = 127,
-    //     .value = 50,
-    //     .increment = 1,
-    // });
-    
     allocator_g = allocator;
 
     const CERT_FILE = "./cert/cert.pem";
@@ -263,7 +249,7 @@ fn set_slider(context: *Context, id: i64, value: i64) !void {
     _ = GlobalControls.update_slider(uid, value);
 
     // now send the update via OSC
-    _ = try GlobalControls.send("test_osc", uid);
+    _ = try GlobalControls.send(uid);
 
     // var message: std.ArrayList(u8) = .empty;
     // const mgw = message.writer(allocator_g);
@@ -441,6 +427,21 @@ fn handle_websocket_message(
                                 }
 
                                 // TODO: handle other controller types, e.g. buttons
+                            }
+                        }
+                    }
+                    else if (std.mem.eql(u8, str, "imu")) {
+                        // header is not set, as imm always implies controls.SLIDER_TYPE
+                        if (obj.contains("uid") and obj.contains("values")) {
+                            const uid    = obj.get("uid");
+                            const values = obj.get("values");
+
+                            if (uid.type == .integer and values.type == .array) {
+                                if (values.array().getOrNull(0)) |value| {
+                                    if (value.type == .integer) {
+                                        try set_slider(ctx, uid.integer(), value.integer());
+                                    }
+                                }
                             }
                         }
                     }

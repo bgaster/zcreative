@@ -48,6 +48,10 @@
             .url = "https://github.com/Hejsil/zig-clap/archive/refs/tags/0.11.0.tar.gz",
             .hash = "clap-0.11.0-oBajB-HnAQDPCKYzwF7rO3qDFwRcD39Q0DALlTSz5H7e",
         },
+        .mpmcq = .{
+            .url = "https://github.com/173duprot/mpmcq.zig/archive/refs/tags/v0.1.0.tar.gz",
+            .hash = "mpmcq-0.1.0-KY1yysK0AACReK4QgM_NLKt7bAoZQKvjo_YYPIg0_44W",
+        },
     },
     .paths = .{
         "build.zig",
