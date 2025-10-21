@@ -1,0 +1,54 @@
+{
+  "controls" : {
+    "sliders" : [
+      {
+        "name" : "pebble0",
+        "lower" : 0,
+        "upper" : 16383,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "pebbleapp"
+      },
+      {
+        "name" : "pebble1",
+        "lower" : 0,
+        "upper" : 16383,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "pebbleapp"
+      },
+      {
+        "name" : "pebble2",
+        "lower" : 0,
+        "upper" : 16383,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "pebbleapp"
+      },
+      {
+        "name" : "pebble3",
+        "lower" : 0,
+        "upper" : 16383,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "pebbleapp"
+      },
+      {
+        "name" : "pebble4",
+        "lower" : 0,
+        "upper" : 16383,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "pebbleapp"
+      },
+      {
+        "name" : "pebble5",
+        "lower" : 0,
+        "upper" : 16383,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "pebbleapp"
+      }
+    ]
+  }
+}
