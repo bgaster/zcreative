@@ -445,6 +445,55 @@ fn handle_websocket_message(
                             }
                         }
                     }
+                    else if (std.mem.eql(u8, str, "imuraw")) {
+                        // pitch, roll, yaw
+                        if (obj.contains("uid") and obj.contains("values")) {
+                            const uid    = obj.get("uid");
+                            const values = obj.get("values");
+
+                            if (uid.type == .integer and values.type == .array) {
+                                if(values.array().len() == 3) {
+                                    const pitch = values.array().get(0);
+                                    const roll = values.array().get(1);
+                                    const yaw = values.array().get(2);
+
+                                    if (pitch.type == .float and roll.type == .float and yaw.type == .float) {
+                                        // const buflen = 256; 
+                                        // var buf: [buflen]u8 = undefined;
+                                        // const address = try std.fmt.bufPrint(
+                                        //     &buf,
+                                        //     "/{s}/{s}",
+                                        //     .{ "pebbleraw", "p0"},
+                                        // );
+                                        try GlobalControls.send_osc(osc.OscMessage.init(
+                                            "/pebbleraw/p0",
+                                            &[_]osc.OscArgument{
+                                                .{ .f = @floatCast(pitch.float()) },
+                                        }));
+                                        try GlobalControls.send_osc(osc.OscMessage.init(
+                                            "/pebbleraw/r0",
+                                            &[_]osc.OscArgument{
+                                                .{ .f = @floatCast(roll.float()) },
+                                        }));
+                                        try GlobalControls.send_osc(osc.OscMessage.init(
+                                            "/pebbleraw/y0",
+                                            &[_]osc.OscArgument{
+                                                .{ .f = @floatCast(yaw.float()) },
+                                        }));
+
+                                        const v = osc.OscMessage.init(
+                                            "/pebbleraw/x0",
+                                            &[_]osc.OscArgument{
+                                                .{ .f = @floatCast(pitch.float()) },
+                                                .{ .f = @floatCast(roll.float()) },
+                                                .{ .f = @floatCast(yaw.float()) },
+                                        });
+                                        try GlobalControls.send_osc(v);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

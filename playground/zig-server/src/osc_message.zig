@@ -78,7 +78,7 @@ pub const OscMessage = struct {
         for (0..self.arguments.len) |i| {
             switch (self.arguments[i]) {
                 .i, .f => {
-                    size += 1;
+                    size += 4;
                     if (i < self.arguments.len - 1 and self.arguments[i + 1] == .s) {
                         size += 1;
                     }

@@ -173,6 +173,10 @@ pub const Controls = struct {
         return false;
     }
 
+    pub fn send_osc(self: *Self, msg: osc.OscMessage) !void {
+       try self.osc.send(msg); 
+    }
+
     pub fn update_button(self: *Self, index: usize, value: bool) bool {
         if (index < self.buttons.items.len) {
             self.buttons.items[index].value = value;

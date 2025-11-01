@@ -3,12 +3,17 @@
 //!
 
 const std = @import("std");
+const builtin = @import("builtin");
 
 const clap = @import("clap");
 
 const ctrls = @import("ctrls.zig");
 
 const json = @import("json.zig");
+
+pub const std_options: std.Options = .{
+     .log_level = if (builtin.mode == .Debug) .debug else .warn,
+};
 
 fn readFile(file_path: []const u8, allocator: std.mem.Allocator) ![]u8 {
     // Open the file for reading

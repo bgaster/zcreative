@@ -61,6 +61,38 @@
 // Enable/Disable stuff
 
 #define USE_WEBSOCKETS 1
+#define OSC_RAW 1
+
+// Wifi Setup
+
+// There is a direct mapping between the PEBBLE_UID below and 
+// the controls.json, which is used to initialize the sliders (i.e. pebble controls).
+// For each physical pebble there needs to be a unique mapping into the controls.json, 
+// which means that for each pebble the define must be set.
+#define PEBBLE_UID "0"
+
+#define PEBBLERAW_MK(uid) "{ \"type\": \"imuraw\", \"uid\": " uid ", \"values\": [%lf,%lf,%lf]}"
+#define PEBBLE_MK(uid) "{ \"type\": \"imu\", \"uid\": " uid ", \"values\": [%d]}"
+
+#define PEBBLE_OSC PEBBLE_MK(PEBBLE_UID)
+#define PEBBLERAW_OSC PEBBLERAW_MK(PEBBLE_UID)
+
+//#define IP_ADDRESS "192.168.0.100" // TP_LINK
+//define IP_ADDRESS "10.3.141.98" // Raspberry Pi
+#define IP_ADDRESS "192.168.1.14" // Giddeon
+
+//WiFiMulti.addAP("TP-Link_9D14", "23056459");
+//WiFiMulti.addAP("RaspAP", "ChangeMe");
+//WiFiMulti.addAP("gideon", "cloudysky326");
+
+// #define SSID "TP-Link_9D14"
+// #define PASSWD  "23056459"
+
+//#define SSID "RaspAP"
+//#define PASSWD  "ChangeMe"
+
+#define SSID "gideon"
+#define PASSWD  "cloudysky326"
 
 // PI constant
 #define PI 3.1415926535897932384626433832795
@@ -219,14 +251,6 @@ WebSocketsClient webSocket;
 
 #define USE_SERIAL Serial
 
-// There is a direct mapping between the PEBBLE_UID below and 
-// the controls.json, which is used to initialize the sliders (i.e. pebble controls).
-// For each physical pebble there needs to be a unique mapping into the controls.json, 
-// which means that for each pebble the define must be set.
-#define PEBBLE_UID "0"
-#define PEBBLE_MK(uid) "{ \"type\": \"imu\", \"uid\": " uid ", \"values\": [%d]}"
-#define PEBBLE_OSC PEBBLE_MK(PEBBLE_UID)
-
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
     switch(type) {
         case WStype_DISCONNECTED:
@@ -278,16 +302,16 @@ void setup()
   //}
 
 #if defined USE_WEBSOCKETS && USE_WEBSOCKETS == 1
-  WiFiMulti.addAP("TP-Link_9D14", "23056459");
-  //WiFiMulti.addAP("RaspAP", "ChangeMe");
+  //WiFiMulti.addAP("TP-Link_9D14", "23056459");
+  WiFiMulti.addAP(SSID, PASSWD);
   //WiFiMulti.addAP("gideon", "cloudysky326");
 
   while(WiFiMulti.run() != WL_CONNECTED) {
         delay(100);
   }
 
-  webSocket.beginSSL("192.168.0.100", 8080);
-  //webSocket.beginSSL("10.3.141.98", 8080);
+  //webSocket.beginSSL("192.168.0.101", 8080);
+  webSocket.beginSSL(IP_ADDRESS, 8080);
   //webSocket.beginSSL("192.168.1.14", 8080);
 
   webSocket.onEvent(webSocketEvent);
@@ -502,6 +526,12 @@ void loop()
     }
     previous_pitch = smoothed_pitch;
   }
+
+#if defined OSC_RAW && OSC_RAW == 1
+  char buffer[256];
+  sprintf(buffer, PEBBLERAW_OSC, pitch, roll, yaw);
+  webSocket.sendTXT(buffer);
+#endif
 
   // send CC message for pitch axis
   if (smoothed_pitch_midi != previous_pitch_midi) {
