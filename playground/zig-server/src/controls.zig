@@ -25,6 +25,14 @@ pub const Slider = struct {
     osc_prefix: []const u8,
 };
 
+pub const Imu = struct {
+    name: []const u8,
+    pitch: f64,
+    roll: f64,
+    yaw: f64,
+    osc_prefix: []const u8,
+};
+
 pub const Button = struct {
     value: bool, 
 };
@@ -46,6 +54,7 @@ pub const Controls = struct {
 
     sliders: std.ArrayList(Slider) = undefined,
     buttons: std.ArrayList(Button) = undefined,
+    imus: std.ArrayList(Imu) = undefined,
 
     osc: OscSend = undefined,
 
@@ -60,6 +69,7 @@ pub const Controls = struct {
             .allocator = allocator,
             .sliders = .empty,
             .buttons = .empty,
+            .imus    = .empty,
             .osc = oscsend,
         };
     }
@@ -89,13 +99,42 @@ pub const Controls = struct {
                                         const osc_prefix = so.get("osc_prefix");
 
                                         if (name.type == .string and lower.type == .integer and upper.type == .integer
-                                            and value.type == .integer and increment.type == .integer) {
+                                            and value.type == .integer and increment.type == .integer and osc_prefix.type == .string) {
                                             _ = try self.add(Slider{
                                                 .name = try Allocator.dupe(self.allocator, u8, name.string()),
                                                 .lower = lower.integer(),
                                                 .upper = upper.integer(),
                                                 .value = value.integer(),
                                                 .increment = increment.integer(),
+                                                .osc_prefix = try Allocator.dupe(self.allocator, u8, osc_prefix.string()),
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (os.getOrNull("imus")) |ss| {
+                        if (ss.arrayOrNull()) |sa| {
+                            for (sa.items()) |s| {
+                                if (s.objectOrNull()) |so| {
+                                    if (so.contains("name") and so.contains("pitch") and so.contains("roll") and 
+                                        so.contains("yaw") and so.contains("osc_prefix")) {
+
+                                        const name = so.get("name");
+                                        const pitch = so.get("pitch");
+                                        const roll = so.get("roll");
+                                        const yaw = so.get("yaw");
+                                        const osc_prefix = so.get("osc_prefix");
+
+                                        if (name.type == .string and pitch.type == .float and roll.type == .float
+                                            and yaw.type == .float and osc_prefix.type == .string) {
+                                            _ = try self.add(Imu{
+                                                .name = try Allocator.dupe(self.allocator, u8, name.string()),
+                                                .pitch = pitch.float(),
+                                                .roll = roll.float(),
+                                                .yaw = yaw.float(),
                                                 .osc_prefix = try Allocator.dupe(self.allocator, u8, osc_prefix.string()),
                                             });
                                         }
@@ -119,6 +158,10 @@ pub const Controls = struct {
                 try self.buttons.append(self.allocator, control);
                 return self.buttons.items.len;
             },
+            Imu => {
+                try self.imus.append(self.allocator, control);
+                return self.imus.items.len;
+            },
             else => {
                 @compileError("Unsupported controller type '" ++ @typeName(@TypeOf(control)) ++ "'");
             },
@@ -139,6 +182,11 @@ pub const Controls = struct {
             Button => {
                 if (index < self.buttons.items.len) {
                     return self.buttons.items[index];
+                }
+            },
+            Imu => {
+                if (index < self.imus.items.len) {
+                    return self.imus.items[index];
                 }
             },
             else => {

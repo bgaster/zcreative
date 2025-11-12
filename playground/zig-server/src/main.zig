@@ -45,10 +45,11 @@ pub fn main() !void {
     try stdout.print("zcreative server\n", .{});
     try stdout.flush();
 
-    var gpa = std.heap.GeneralPurposeAllocator(.{
-        .thread_safe = true,
-    }){};
-    const allocator = gpa.allocator();
+    // var gpa = std.heap.GeneralPurposeAllocator(.{
+    //     .thread_safe = true,
+    // }){};
+    // const allocator = gpa.allocator();
+    const allocator = std.heap.c_allocator;
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help     Display this help and exit.

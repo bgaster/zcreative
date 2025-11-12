@@ -49,6 +49,15 @@
         "increment" : 1,
         "osc_prefix" : "pebbleapp"
       }
+    ],
+    "imus": [
+     {
+        "name" : "p0",
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw" : 0.0,
+        "osc_prefix" : "pebbleraw"
+     }
     ]
   }
 }

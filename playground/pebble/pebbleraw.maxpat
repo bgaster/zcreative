@@ -10,9 +10,34 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 103.0, 145.0, 1155.0, 785.0 ],
+		"rect" : [ 80.0, 179.0, 1155.0, 785.0 ],
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
+				"box" : 				{
+					"id" : "obj-4",
+					"linecount" : 3,
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 345.0, 619.0, 101.0, 49.0 ],
+					"text" : "0.023944 0.021612 -1.315418"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-1",
+					"maxclass" : "newobj",
+					"numinlets" : 3,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 376.0, 574.0, 193.0, 22.0 ],
+					"text" : "route /pebbleraw/x0 /pebbleraw/p1"
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"id" : "obj-29",
 					"maxclass" : "comment",
@@ -221,12 +246,13 @@
 , 			{
 				"box" : 				{
 					"id" : "obj-6",
+					"linecount" : 2,
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 646.0, 619.0, 175.0, 22.0 ],
-					"text" : "/pebbleraw/y0 0.750934"
+					"patching_rect" : [ 646.0, 619.0, 175.0, 35.0 ],
+					"text" : "/pebbleraw/x0 0.022453 0.009178 0.556106"
 				}
 
 			}
@@ -399,6 +425,13 @@
  ],
 		"lines" : [ 			{
 				"patchline" : 				{
+					"destination" : [ "obj-4", 1 ],
+					"source" : [ "obj-1", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-123", 0 ],
 					"midpoints" : [ 235.5, 437.0, 709.92578125, 437.0, 709.92578125, 200.0, 389.5, 200.0 ],
 					"source" : [ "obj-121", 0 ]
@@ -470,16 +503,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-6", 1 ],
-					"order" : 0,
-					"source" : [ "obj-5", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-6", 0 ],
-					"order" : 1,
+					"destination" : [ "obj-1", 0 ],
 					"source" : [ "obj-5", 0 ]
 				}
 
@@ -537,6 +561,16 @@
 			"obj-19" : [ "p0", "p0", 0 ],
 			"obj-23" : [ "r0", "r0", 0 ],
 			"obj-25" : [ "y0", "y0", 0 ],
+			"parameterbanks" : 			{
+				"0" : 				{
+					"index" : 0,
+					"name" : "",
+					"parameters" : [ "-", "-", "-", "-", "-", "-", "-", "-" ],
+					"buttons" : [ "-", "-", "-", "-", "-", "-", "-", "-" ]
+				}
+
+			}
+,
 			"inherited_shortname" : 1
 		}
 ,
