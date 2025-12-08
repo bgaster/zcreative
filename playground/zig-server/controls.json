@@ -1,29 +1,95 @@
 {
-  "controls" : {
+  "groups" : true, "controls" : {
     "sliders" : [
       {
-        "name" : "slider1",
-        "lower" : 0,
-        "upper" : 100,
-        "value" : 50,
-        "increment" : 1,
-        "osc_prefix" : "/test_osc/"
-      },
-      {
-        "name" : "gain",
+        "name" : "gain/1",
+        "group" : "user-0",
         "lower" : 0,
         "upper" : 127,
         "value" : 50,
         "increment" : 1,
-        "osc_prefix" : "/test_osc/"
+        "osc_prefix" : "FMFor8Phones"
       },
       {
-        "name" : "pebble1",
+        "name" : "freq/1",
+        "group" : "user-0",
         "lower" : 0,
-        "upper" : 16383,
+        "upper" : 127,
         "value" : 50,
         "increment" : 1,
-        "osc_prefix" : "pitchbender"
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "q/1",
+        "group" : "user-0",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/2",
+        "group" : "user-1",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/3",
+        "group" : "user-2",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/4",
+        "group" : "user-3",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/5",
+        "group" : "user-4",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/6",
+        "group" : "user-5",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/7",
+        "group" : "user-6",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/8",
+        "group" : "user-7",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
       }
     ]
   }

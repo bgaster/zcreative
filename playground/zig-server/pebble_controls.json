@@ -1,5 +1,5 @@
 {
-  "controls" : {
+  "groups" : false, "controls" : {
     "sliders" : [
       {
         "name" : "pebble0",

@@ -18,6 +18,7 @@ pub const BUTTON_TYPE: i64 = 2;
 
 pub const Slider = struct {
     name: []const u8,
+    group: ?[]const u8,
     lower: i64,
     upper: i64,
     value: i64,
@@ -100,8 +101,18 @@ pub const Controls = struct {
 
                                         if (name.type == .string and lower.type == .integer and upper.type == .integer
                                             and value.type == .integer and increment.type == .integer and osc_prefix.type == .string) {
+
+                                            var group:?[]const u8 = null;
+                                            if (so.contains("group")) {
+                                                const g = so.get("group");
+                                                if (g.type == .string) {
+                                                    group = try Allocator.dupe(self.allocator, u8, g.string());
+                                                }
+                                            }
+
                                             _ = try self.add(Slider{
                                                 .name = try Allocator.dupe(self.allocator, u8, name.string()),
+                                                .group = group,
                                                 .lower = lower.integer(),
                                                 .upper = upper.integer(),
                                                 .value = value.integer(),

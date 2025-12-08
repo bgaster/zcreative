@@ -82,9 +82,9 @@ pub fn main() !void {
     if (res.positionals[0]) |file_path| {
         // Reading from the file
         const file = try readFile(file_path, allocator);
-        const controls = try json.parse(file, allocator);
+        const config = try json.parse(file, allocator);
         allocator.free(file);
-        try ctrls.start(allocator, ip, controls);
+        try ctrls.start(allocator, ip, config);
     }
 
     // const spawnConfig = std.Thread.SpawnConfig{

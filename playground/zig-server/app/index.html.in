@@ -21,6 +21,9 @@
   <div id="controlsContainer">
   </div>
 
+  <div id="imusContainer">
+  </div>
+
   <br>
   <hr class="dashed">
   <br>
@@ -34,6 +37,7 @@
   <button id="connectButton">Connect control</button>
 
   <button id="closeButton">Close control</button>
+
 
   <br>
   <hr class="dashed">

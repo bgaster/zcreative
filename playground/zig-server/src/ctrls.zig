@@ -62,7 +62,7 @@ fn help_and_exit(filename: []const u8, err: anyerror) void {
 }
 
 
-pub fn start(allocator: Allocator, ip: []const u8, controls_json: *jsonP.JsonValue) !void {
+pub fn start(allocator: Allocator, ip: []const u8, config_json: *jsonP.JsonValue) !void {
 
     GlobalContextManager = ContextManager.init(allocator, "zcreative-server", "user-");
     defer GlobalContextManager.deinit();
@@ -70,9 +70,19 @@ pub fn start(allocator: Allocator, ip: []const u8, controls_json: *jsonP.JsonVal
     GlobalControls = try controls.Controls.init(allocator, "127.0.0.1", port_udp);
     defer GlobalControls.deinit();
 
+    // enable groups?
+    if (config_json.objectOrNull()) |obj| {
+        if (obj.contains("groups"))  {
+            const g = obj.get("groups");
+            if (g.type == .boolean) {
+                GlobalContextManager.groups = g.boolean();
+            }
+        }
+    }
+
     // setup controls
-    try GlobalControls.add_from_json(controls_json);
-    controls_json.deinit(allocator);
+    try GlobalControls.add_from_json(config_json);
+    config_json.deinit(allocator);
 
     allocator_g = allocator;
 
@@ -169,6 +179,8 @@ const ContextManager = struct {
     contexts: ContextMap = undefined,
     nextUserId: u32,
 
+    groups: bool,
+
     pub fn init(
         allocator: std.mem.Allocator,
         channelName: []const u8,
@@ -180,6 +192,7 @@ const ContextManager = struct {
             .usernamePrefix = usernamePrefix,
             .contexts = ContextMap.init(allocator,),
             .nextUserId = 0,
+            .groups = false,
         };
     }
 
@@ -286,23 +299,48 @@ fn send_controls(context: *Context) !void {
 
     // sliders 
     for (GlobalControls.sliders.items, 0..) |slider, id| {
-        // controller object
-        const objControl = try jsonP.createObject(allocator_g); 
+        if (GlobalContextManager.groups) {
+            if (slider.group) |group| {
+                if (std.mem.eql(u8, context.userName, group)) {
+                    // controller object
+                    const objControl = try jsonP.createObject(allocator_g); 
 
-        // basic fields for controller
-        try jsonP.objectPut(allocator_g, objControl, "type", try jsonP.createInteger(allocator_g, controls.SLIDER_TYPE));
-        try jsonP.objectPut(allocator_g, objControl, "id", try jsonP.createInteger(allocator_g, @intCast(id)));
-        try jsonP.objectPut(allocator_g, objControl, "name", try jsonP.createString(allocator_g, slider.name));
-        
-        // controller values
-        const jsonValuesArray = try jsonP.beginArray(allocator_g);
-        try jsonP.arrayAppend(allocator_g, jsonValuesArray, try jsonP.createInteger(allocator_g, slider.lower));
-        try jsonP.arrayAppend(allocator_g, jsonValuesArray, try jsonP.createInteger(allocator_g, slider.upper));
-        try jsonP.arrayAppend(allocator_g, jsonValuesArray, try jsonP.createInteger(allocator_g, slider.value));
-        try jsonP.arrayAppend(allocator_g, jsonValuesArray, try jsonP.createInteger(allocator_g, slider.increment));
-        try jsonP.objectPut(allocator_g, objControl, "values", try jsonP.createFromArray(allocator_g, jsonValuesArray));
+                    // basic fields for controller
+                    try jsonP.objectPut(allocator_g, objControl, "type", try jsonP.createInteger(allocator_g, controls.SLIDER_TYPE));
+                    try jsonP.objectPut(allocator_g, objControl, "id", try jsonP.createInteger(allocator_g, @intCast(id)));
+                    try jsonP.objectPut(allocator_g, objControl, "name", try jsonP.createString(allocator_g, slider.name));
+                    
+                    // controller values
+                    const jsonValuesArray = try jsonP.beginArray(allocator_g);
+                    try jsonP.arrayAppend(allocator_g, jsonValuesArray, try jsonP.createInteger(allocator_g, slider.lower));
+                    try jsonP.arrayAppend(allocator_g, jsonValuesArray, try jsonP.createInteger(allocator_g, slider.upper));
+                    try jsonP.arrayAppend(allocator_g, jsonValuesArray, try jsonP.createInteger(allocator_g, slider.value));
+                    try jsonP.arrayAppend(allocator_g, jsonValuesArray, try jsonP.createInteger(allocator_g, slider.increment));
+                    try jsonP.objectPut(allocator_g, objControl, "values", try jsonP.createFromArray(allocator_g, jsonValuesArray));
 
-        try jsonP.arrayAppend(allocator_g, jsonArray, try jsonP.createFromObject(allocator_g, objControl));
+                    try jsonP.arrayAppend(allocator_g, jsonArray, try jsonP.createFromObject(allocator_g, objControl));
+                }
+            }
+        }
+        else {
+            // controller object
+            const objControl = try jsonP.createObject(allocator_g); 
+
+            // basic fields for controller
+            try jsonP.objectPut(allocator_g, objControl, "type", try jsonP.createInteger(allocator_g, controls.SLIDER_TYPE));
+            try jsonP.objectPut(allocator_g, objControl, "id", try jsonP.createInteger(allocator_g, @intCast(id)));
+            try jsonP.objectPut(allocator_g, objControl, "name", try jsonP.createString(allocator_g, slider.name));
+            
+            // controller values
+            const jsonValuesArray = try jsonP.beginArray(allocator_g);
+            try jsonP.arrayAppend(allocator_g, jsonValuesArray, try jsonP.createInteger(allocator_g, slider.lower));
+            try jsonP.arrayAppend(allocator_g, jsonValuesArray, try jsonP.createInteger(allocator_g, slider.upper));
+            try jsonP.arrayAppend(allocator_g, jsonValuesArray, try jsonP.createInteger(allocator_g, slider.value));
+            try jsonP.arrayAppend(allocator_g, jsonValuesArray, try jsonP.createInteger(allocator_g, slider.increment));
+            try jsonP.objectPut(allocator_g, objControl, "values", try jsonP.createFromArray(allocator_g, jsonValuesArray));
+
+            try jsonP.arrayAppend(allocator_g, jsonArray, try jsonP.createFromObject(allocator_g, objControl));
+        }
     }
 
     // TODO: add other controller types, e.g. Buttons.
@@ -315,6 +353,19 @@ fn send_controls(context: *Context) !void {
     WebsocketHandler.publish(.{ .channel = context.channel, .message = message.items, .is_json = true});
 }
 
+fn send_userid(context: *Context) !void {
+    const obj = try jsonP.createObject(allocator_g); 
+    defer obj.deinit(allocator_g);
+
+    var message: std.ArrayList(u8) = .empty;
+    const mgw = message.writer(allocator_g);
+
+    try jsonP.objectPut(allocator_g, obj, "type", try jsonP.createString(allocator_g, "userID"));
+    try jsonP.objectPut(allocator_g, obj, "header", try jsonP.createString(allocator_g, context.userName));
+    try obj.toString(mgw);
+
+    WebsocketHandler.publish(.{ .channel = context.channel, .message = message.items, .is_json = true});
+}
 
 fn broadcast_names(context: ?*Context) !void {
     const obj = try jsonP.createObject(allocator_g); 
@@ -357,6 +408,7 @@ fn on_open_websocket(context: ?*Context, handle: WebSockets.WsHandle) !void {
     if (context) |ctx| {
         _ = try WebsocketHandler.subscribe(handle, &ctx.subscribeArgs);
 
+        try send_userid(ctx);
         try broadcast_names(ctx);
 
         // send notification to all others

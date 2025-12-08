@@ -5,10 +5,14 @@ let webSocket;
 let userListUl;
 let connectButton;
 let closeButton;
+let connectIMUButton;
 let addSliderButton;
 let slidersContainer;
 let controlsContainer;
+let imusContainer;
+let imusCount;
 let sliderCount;
+let userID;
 const activeSliders = new Map();
 
 // audio globlas
@@ -34,10 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // control global init
     connectButton = document.getElementById('connectButton');
     closeButton = document.getElementById('closeButton');
+    connectIMUButton = document.getElementById('connectIMUButton');
     addSliderButton = document.getElementById('addSliderButton');
     slidersContainer = document.getElementById('slidersContainer');
     controlsContainer = document.getElementById('controlsContainer');
+    imusContainer = document.getElementById('imusContainer');
     sliderCount = 0; // To keep track of the number of sliders for unique IDs
+    imusCount = 0; // To keep track of the number of imus for unique IDs
     userListUl = document.getElementById('userList');
 
     // audio global init
@@ -53,6 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
     closeButton.addEventListener('click', () => {
       closeWS();
     })
+
+    // connectIMUButton.addEventListener('click', () => {
+    //   connectIMU();
+    // });
 
   
     // audio stuff (this is receive only, the server generates all audio)
@@ -285,6 +296,10 @@ function connectWS() {
       const msg = JSON.parse(event.data);
   
       switch (msg.type) {
+        case "userID":
+            userID = msg.header;
+            console.log(userID);
+            break;
         case "users":
           const usernames = msg.data;
           if (Array.isArray(msg.data)) {
