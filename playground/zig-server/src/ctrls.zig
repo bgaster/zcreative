@@ -220,13 +220,21 @@ const ContextManager = struct {
             "{s}{d}",
             .{ self.usernamePrefix, id },
         );
+
+        // currently the comms channel is unique, but shared channels could be 
+        // used to have some connections receive the same set of broadcast msgs.
+        const channel = try std.fmt.allocPrint(
+            self.allocator,
+            "{s}{d}",
+            .{ self.channel, id },
+        );
         ctx.* = .{
             .userName = userName,
             .id = id,
-            .channel = self.channel,
+            .channel = channel,
             // used in subscribe()
             .subscribeArgs = .{
-                .channel = self.channel,
+                .channel = channel,
                 .force_text = true,
                 .context = ctx,
             },
@@ -302,6 +310,7 @@ fn send_controls(context: *Context) !void {
         if (GlobalContextManager.groups) {
             if (slider.group) |group| {
                 if (std.mem.eql(u8, context.userName, group)) {
+                    std.debug.print("{s} {s}\n", .{group, context.userName} );
                     // controller object
                     const objControl = try jsonP.createObject(allocator_g); 
 
