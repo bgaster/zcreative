@@ -17,7 +17,7 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
         print(post_data.decode("utf-8"))
 
 # server_address = ("192.168.1.18", 5000)
-server_address = ("192.168.1.14", 5000)
+server_address = ("172.20.10.2", 5000)
 httpd = http.server.HTTPServer(server_address, MyHandler)
 
 print('%s' % (server_address,))

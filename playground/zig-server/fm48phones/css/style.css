@@ -1,141 +1,113 @@
-body, html {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    font-family: sans-serif;
-    background-color: black; /* Set a consistent background color */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.slideshow-container {
-    width: 100%;
-    height: 100%;
-    position: relative;
-}
-
-.slide {
-    position: absolute; /* Stack all slides on top of each other */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* Center content vertically */
-    align-items: center; /* Center content horizontally */
-    text-align: center;
-    color: white;
-    background-color: black;
-    opacity: 0; /* Initially hide all slides */
-    visibility: hidden;
-    transition: opacity 0.6s ease-in-out; /* Smooth transition for slides */
-}
-
-.slide.active {
-    opacity: 1; /* Make the active slide fully visible */
-    visibility: visible;
-}
-
-/* Optional: Better styling for slide content */
-.slide h1 {
-    font-size: 4em;
-    margin-bottom: 0.5em;
-}
-.slide p {
-    font-size: 1.5em;
+body {
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  background: black;
 }
 
 .slide-logo {
     position: absolute;
-    bottom: 20px; /* Distance from the bottom edge */
-    right: 20px;  /* Distance from the right edge */
-    width: 100px; /* Adjust size as needed */
+    bottom: 40px;
+    right: 20px;  
+    width: 100px; 
     height: auto;
-    /* Ensure the logo appears above other slide content if necessary */
+    /* force to be over top of slides */
     z-index: 10; 
 }
 
-/* --- Button Styling --- */
-
-.nav-button {
-    position: fixed; /* Keep buttons visible regardless of slide movement */
-    bottom: 40px;
-    padding: 10px 20px;
-    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-size: 1.2em;
-    border-radius: 5px;
-    z-index: 100; /* Ensure they are on top of everything */
-    transition: background-color 0.3s;
+.slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: black;
+  color: white;
+  transition: opacity 0.5s;
 }
 
-.nav-button:hover {
-    background-color: rgba(0, 0, 0, 0.8);
+.slide.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
-.nav-button {
-    /* ... other styles ... */
-    bottom: 80px; /* INCREASED from 40px to 80px to move them higher */
-    /* ... other styles ... */
+h1 {
+  font-size: 4rem;
+  margin-bottom: 2rem;
 }
 
-.next-button {
-    right: 140px; 
-    visibility: hidden;
+button {
+  padding: 1rem 3rem;
+  font-size: 1.5rem;
+  background: white;
+  color: #667eea;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: transform 0.2s;
 }
 
-.prev-button {
-    right: 220px; 
-    visibility: hidden;
+button:hover {
+  transform: scale(1.1);
 }
 
-/* Target the button using its class */
-.connect-button {
-    /* 1. Make the text bigger */
-    font-size: 1.5em; 
-
-    /* 2. Add substantial padding (best way to increase size) */
-    padding: 15px 30px; 
-
-    /* 3. Optional: Set a fixed width if needed */
-    /* width: 250px; */ 
-
-    /* Optional visual improvements */
-    border-radius: 8px;
-    border: 2px solid #0f928d;
-    background-color: #0f928d;
-    color: white;
-    cursor: pointer;
+#sliderContainer {
+  display: flex;
+  gap: 3rem;
+  height: 80vh;
+  align-items: center;
+  justify-content: center;
 }
 
-.slider-group {
-    background-color: black;
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap; /* Allows elements to wrap on smaller screens */
+.slider-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80px;
+  height: 200px;
+  justify-content: center;
 }
 
-.slider-group label {
-    font-weight: bold;
-    min-width: 80px; /* Give some consistent width for labels */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 200px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  outline: none;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  cursor: pointer;
+  margin: 0;
 }
 
-.slider-group input[type="range"] {
-    flex-grow: 1; /* Allows the slider to take available space */
-    width: auto; /* Override default width */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-.slider-value {
-    font-weight: bold;
-    color: #28a745;
-    min-width: 40px; /* Ensure space for value display */
-    text-align: right;
+input[type="range"]::-moz-range-thumb {
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }

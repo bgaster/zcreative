@@ -1,38 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FM for 8 Phones</title>
-    <link rel="stylesheet" href="./css/style.css?1"> </head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FM for 8 Phones</title>
+  <link rel="stylesheet" href="./css/style.css?4">
+</head>
 <body>
+  <div id="slide1" class="slide">
+    <h1>FM for 8 Phones</h1>
+    <button id="startBtn">connect</button>
+    <img src="./assets/eci-logo-white.svg" alt="ECI Logo" class="slide-logo">
+  </div>
 
-    <div class="slideshow-container">
-        <div class="slide active">
-          <h1>FM for 8 Phones</h1>
-          <p>
-          </p>
-          <button class="connect-button" id="connectBtn">connect</button>
-        </div>
+  <div id="slide2" class="slide hidden">
+    <div id="sliderContainer"></div>
+  </div>
 
-        <div class="slide">
-          <div id="controlsContainer">
-          </div>
-            <!-- <h1>Slider interface!</h1> -->
-            <!-- <img src="./assets/eci-logo-white.svg" alt="ECI Logo" class="slide-logo"> -->
-        </div>
 
-        <div class="slide">
-            <h1>Slide 3: End!</h1>
-            <p>Press the **Left Arrow** key to go back.</p>
-            <!-- <img src="./assets/eci-logo-white.svg" alt="ECI Logo" class="slide-logo"> -->
-        </div>
-    </div>
-
-    <img src="./assets/eci-logo-color.svg" alt="ECI Logo" class="slide-logo">
-
-    <button class="nav-button next-button" id="nextBtn">Next &gt;</button>
-    <button class="nav-button prev-button" id="prevBtn">&lt; Previous</button>
-
-    <script src="./js/app.js?1"></script> </body>
+  <script src="./js/app.js"></script>
+</body>
 </html>

@@ -29,6 +29,33 @@
         "osc_prefix" : "FMFor8Phones"
       },
       {
+        "name" : "gain/9",
+        "group" : "user-0",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "freq/9",
+        "group" : "user-0",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "q/9",
+        "group" : "user-0",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
         "name" : "gain/2",
         "group" : "user-1",
         "lower" : 0,

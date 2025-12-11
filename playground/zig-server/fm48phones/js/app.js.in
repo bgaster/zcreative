@@ -47,7 +47,7 @@ function connectWS() {
       webSocket.close()
   }
 
-  var endpoint = "wss://172.20.10.2:8080"
+  var endpoint = "wss://{{ip}}:8080"
 
   webSocket = new WebSocket(endpoint);
 
