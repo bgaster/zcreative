@@ -1,0 +1,249 @@
+{
+  "groups" : true, "controls" : {
+    "sliders" : [
+      {
+        "name" : "gain/1",
+        "group" : "user-0",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "freq/1",
+        "group" : "user-0",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "q/1",
+        "group" : "user-0",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/9",
+        "group" : "user-0",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "freq/9",
+        "group" : "user-0",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "q/9",
+        "group" : "user-0",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/2",
+        "group" : "user-1",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "freq/2",
+        "group" : "user-1",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "q/2",
+        "group" : "user-1",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/3",
+        "group" : "user-2",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "freq/3",
+        "group" : "user-2",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "q/3",
+        "group" : "user-2",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/4",
+        "group" : "user-3",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "freq/4",
+        "group" : "user-3",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "q/4",
+        "group" : "user-3",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/5",
+        "group" : "user-4",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "freq/5",
+        "group" : "user-4",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "q/5",
+        "group" : "user-4",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/6",
+        "group" : "user-5",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "freq/6",
+        "group" : "user-5",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "q/6",
+        "group" : "user-5",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/7",
+        "group" : "user-6",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "freq/7",
+        "group" : "user-6",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "q/7",
+        "group" : "user-6",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "gain/8",
+        "group" : "user-7",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "freq/8",
+        "group" : "user-7",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      },
+      {
+        "name" : "q/8",
+        "group" : "user-7",
+        "lower" : 0,
+        "upper" : 127,
+        "value" : 50,
+        "increment" : 1,
+        "osc_prefix" : "FMFor8Phones"
+      }
+    ]
+  }
+}

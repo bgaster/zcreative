@@ -86,8 +86,11 @@ pub fn start(allocator: Allocator, ip: []const u8, config_json: *jsonP.JsonValue
 
     allocator_g = allocator;
 
-    const CERT_FILE = "./cert/cert.pem";
-    const KEY_FILE = "./cert/key.pem";
+    // const CERT_FILE = "./cert/cert.pem";
+    // const KEY_FILE = "./cert/key.pem";
+
+    const CERT_FILE = "./ca/mysite.crt";
+    const KEY_FILE = "./ca/mysite.key";
 
     std.fs.cwd().access(CERT_FILE, .{}) catch |err| {
         help_and_exit(CERT_FILE, err);

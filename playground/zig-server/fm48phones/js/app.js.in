@@ -47,7 +47,8 @@ function connectWS() {
       webSocket.close()
   }
 
-  var endpoint = "wss://{{ip}}:8080"
+  // var endpoint = "wss://{{ip}}:8080"
+  var endpoint = "wss://S-FET-HQKRX90VWR.local:8080";
 
   webSocket = new WebSocket(endpoint);
 

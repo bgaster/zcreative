@@ -29,4 +29,3 @@ Licensed under any of
 at your option.
 
 Dual MIT/Apache2 is strictly more permissive.
-
