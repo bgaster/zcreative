@@ -19,11 +19,12 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
 # server_address = ("192.168.1.18", 5000)
 # server_address = ("192.168.1.14", 5000)
 # server_address = ("S-FET-HQKRX90VWR.local", 5002)
-server_address = ("", 5001)
+# server_address = ("", 5001)
+server_address = ("", 443)
 httpd = http.server.HTTPServer(server_address, MyHandler)
 
-print('https://', server_address[0], ':', server_address[1], sep="")
-print(f"Server running at https://S-FET-HQKRX90VWR.local:5001")
+# print('https://', server_address[0], ':', server_address[1], sep="")
+print(f"Server running at https://S-FET-HQKRX90VWR.local")
 
 # context = get_ssl_context("../cert/cert.pem", "../cert/key.pem")
 context = get_ssl_context("../ca/mysite.crt", "../ca/mysite.key")
