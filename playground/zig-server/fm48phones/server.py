@@ -17,7 +17,7 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
         print(post_data.decode("utf-8"))
 
 # server_address = ("192.168.1.18", 5000)
-# server_address = ("192.168.1.14", 5000)
+# server_address = ("10.2.40.163", 5000)
 # server_address = ("S-FET-HQKRX90VWR.local", 5002)
 # server_address = ("", 5001)
 server_address = ("", 443)
